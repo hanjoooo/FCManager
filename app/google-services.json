@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "116318374440",
+    "firebase_url": "https://fcmanager-cf2e8.firebaseio.com",
+    "project_id": "fcmanager-cf2e8",
+    "storage_bucket": "fcmanager-cf2e8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116318374440:android:3dcf863945b77692",
+        "android_client_info": {
+          "package_name": "com.example.khanj.fcmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "116318374440-fjgu2ivn7u91oio0tavcrvc8kbdqav9i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAa0ymKnIfudCYe1heww75vro7UzE1zcjw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
