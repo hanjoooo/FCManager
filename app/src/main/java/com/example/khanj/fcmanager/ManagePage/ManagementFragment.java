@@ -1,6 +1,10 @@
 package com.example.khanj.fcmanager.ManagePage;
 
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.R;
@@ -70,12 +73,14 @@ public class ManagementFragment extends BaseFragment  {
                 Log.i("Month test", Month + "");
                 Log.i("Day test", Day + "");
 
-                String shot_Day = Year + "," + Month + "," + Day;
+                String shot_Day = Year + "." + Month + "." + Day;
 
                 Log.i("shot_Day test", shot_Day + "");
                 materialCalendarView.clearSelection();
 
-                Toast.makeText(getContext(), shot_Day , Toast.LENGTH_SHORT).show();
+
+                MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day+" 일지");
+                dialog.show(getActivity().getFragmentManager(),"dialog");
             }
         });
 
@@ -132,6 +137,42 @@ public class ManagementFragment extends BaseFragment  {
     public void onActivityResult(ActivityResultEvent activityResultEvent) {
         onActivityResult(activityResultEvent.getRequestCode(), activityResultEvent.getResultCode(), activityResultEvent.getData());
         if (activityResultEvent.getResultCode()==-1){
+        }
+    }
+
+    public static class MyAlertDialogFragment extends DialogFragment {
+
+        public static MyAlertDialogFragment newInstance(String title){
+            MyAlertDialogFragment frag = new MyAlertDialogFragment();
+            Bundle args = new Bundle();
+            args.putString("title", title);
+            frag.setArguments(args);
+            return frag;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            //return super.onCreateDialog(savedInstanceState);
+
+            String title = getArguments().getString("title");
+            return new AlertDialog.Builder(getActivity())
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setTitle(title)
+                    .setMessage("기초대사량 : 1900 kcal\n섭취칼로리 : 3000 kcal")
+                    .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i("MyLog", "취소 버튼이 눌림");
+                        }
+                    })
+                    .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.i("MyLog", "확인 버튼이 눌림");
+                        }
+                    })
+                    .create();
         }
     }
 }

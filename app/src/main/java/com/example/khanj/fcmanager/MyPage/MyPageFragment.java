@@ -1,9 +1,6 @@
 package com.example.khanj.fcmanager.MyPage;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -14,8 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,12 +22,10 @@ import com.bumptech.glide.signature.StringSignature;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.LoginActivity;
 import com.example.khanj.fcmanager.R;
-import com.example.khanj.fcmanager.RegistActivity;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,19 +33,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.otto.Subscribe;
-
-import org.web3j.abi.datatypes.Int;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
 
 
 /**
@@ -67,9 +53,9 @@ public class MyPageFragment extends BaseFragment {
     private DatabaseReference childNameRef;
     private DatabaseReference childGenderRef;
     private DatabaseReference childAgeRef;
+    private DatabaseReference childHeightRef;
     private DatabaseReference childPWeightRef;
     private DatabaseReference childMWeightRef;
-    private DatabaseReference childHeightRef;
 
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference storageRef = storage.getReference();
@@ -86,13 +72,14 @@ public class MyPageFragment extends BaseFragment {
     static int REQUEST_PHOTO_ALBUM=1;
 
 
-    private int rAge;
-    private Double rHeight;
-    private Double rPweight;
-    private Double rMweight;
+    private int rAge=0;
+    private Double rHeight=0.0;
+    private Double rPweight=0.0;
+    private Double rMweight=0.0;
     private int rCalorie = 0;
 
     static final String[] LIST_MENU = {"내 정보 수정","내 목표 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
+    static final String[] LIST2_MENU = {"일지 등록/수정","일지 기록보기","영양 정보보기"};
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_my_page, container, false);
@@ -107,8 +94,14 @@ public class MyPageFragment extends BaseFragment {
 
 
         ArrayAdapter adapter = new ArrayAdapter(this.getActivity(),android.R.layout.simple_list_item_1,LIST_MENU);
+        ArrayAdapter adapter2 = new ArrayAdapter(this.getActivity(),android.R.layout.simple_list_item_1,LIST2_MENU);
         ListView listView = (ListView)v.findViewById(R.id.listview);
+        ListView listView2 = (ListView)v.findViewById(R.id.listview2);
+
         listView.setAdapter(adapter);
+        listView2.setAdapter(adapter2);
+        setListViewHeightBasedOnChildren(listView);
+        setListViewHeightBasedOnChildren(listView2);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -122,6 +115,15 @@ public class MyPageFragment extends BaseFragment {
                 }
                 else if(position == 4){
                     signOut();
+                }
+            }
+        });
+        listView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position==0){
+                    Intent intent = new Intent(getContext(),DietRecordActivity.class);
+                    startActivity(intent);
                 }
             }
         });
@@ -145,10 +147,10 @@ public class MyPageFragment extends BaseFragment {
         schildRef = storageRef.child(currentUser.getUid());
         childNameRef = mchildRef.child("name");
         childHeightRef = mchildRef.child("height");
-        childPWeightRef = mchildRef.child("Pweight");
-        childMWeightRef = mchildRef.child("Mweight");
         childAgeRef = mchildRef.child("age");
         childGenderRef = mchildRef.child("gender");
+        childPWeightRef = mchildRef.child("Pweight");
+        childMWeightRef = mchildRef.child("Mweight");
         sprofileRef = schildRef.child("profileImg");
         try{
             Glide.with(MyPageFragment.this.getActivity()).using(new FirebaseImageLoader())
@@ -156,54 +158,27 @@ public class MyPageFragment extends BaseFragment {
         }catch (Exception e) {
             System.out.println(e);
         }
-
-        /*
-        sprofileRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-            @Override
-            public void onSuccess(byte[] bytes) {
-                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-                try {
-                    in.read(bytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Bitmap bitmap = BitmapFactory.decodeStream(in);
-                ByteArrayOutputStream tbytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG,100,tbytes);
-                String path = MediaStore.Images.Media.insertImage(MyPageFragment.this.getActivity().getContentResolver(),bitmap,"Title",null);
-                profileImg.setImageURI(Uri.parse(path));
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-            }
-        });
-        */
-        childAgeRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String age = dataSnapshot.getValue(String.class);
-                rAge = Integer.parseInt(age);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
         childNameRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String name = dataSnapshot.getValue(String.class);
                 txName.setText(name+"님");
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
+        childAgeRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String age = dataSnapshot.getValue(String.class);
+                rAge = Integer.parseInt(age);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
         childHeightRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -213,7 +188,6 @@ public class MyPageFragment extends BaseFragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
         childPWeightRef.addValueEventListener(new ValueEventListener() {
@@ -271,6 +245,24 @@ public class MyPageFragment extends BaseFragment {
         });
     }
 
+    public static void setListViewHeightBasedOnChildren(ListView listView) {
+
+        ListAdapter listAdapter = listView.getAdapter();
+        if (listAdapter == null) {
+            // pre-condition
+            return;
+        }
+        int totalHeight = 0;
+        for (int i = 0; i < listAdapter.getCount(); i++) {
+            View listItem = listAdapter.getView(i, null, listView);
+            listItem.measure(0, 0);
+            totalHeight += listItem.getMeasuredHeight();
+        }
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        listView.setLayoutParams(params);
+        listView.requestLayout();
+    }
     void photoAlbum(){
         //저장된 사진을 불러오는 함수이다. 즉앨범에있는것인데 인텐트는 ACTION_PICK
         Intent intent=new Intent(Intent.ACTION_PICK);

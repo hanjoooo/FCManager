@@ -33,12 +33,10 @@
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
 
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity" />
         <activity android:name=".MyPage.ProfileActivity" />
-        <activity android:name=".MyPage.profileChange" />
-        <activity android:name=".LoginActivity">
-
-        </activity>
+        <activity android:name=".MyPage.ChangeRecordAcitivity" />
+        <activity android:name=".LoginActivity"></activity>
         <activity android:name=".RegistActivity" />
         <activity android:name=".SplashActivity">
             <intent-filter>
@@ -47,6 +45,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".MyPage.DietRecordActivity"></activity>
     </application>
 
 </manifest>

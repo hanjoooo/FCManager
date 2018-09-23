@@ -17,4 +17,9 @@
     <color name="textColorWhitePrimary">#ffffff</color>
     <color name="textColorWhiteSecondary">#b3ffffff</color>
     <color name="textColorWhiteDisabled">#80ffffff</color>
+
+    <color name="gray">#aaaaaa</color>
+    <color name="darkgray">#777777</color>
+    <color name="whitegray">#dddddd</color>
+    <color name="verywhitegray">#eeeeee</color>
 </resources>

@@ -13,12 +13,12 @@ import com.example.khanj.fcmanager.R;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class profileChange extends AppCompatActivity {
+public class ChangeRecordAcitivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile_change);
+        setContentView(R.layout.activity_change_record);
 
         final DBHelper dbHelper = new DBHelper(getApplicationContext(), "MoneyBook.db", null, 1);
 

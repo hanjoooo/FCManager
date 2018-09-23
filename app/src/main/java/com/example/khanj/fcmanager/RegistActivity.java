@@ -257,7 +257,6 @@ public class RegistActivity extends BaseActivity {
                             childHeightRef.setValue(edHeight.getText().toString());
                             childPWeightRef.setValue(edPWeight.getText().toString());
                             childMWeightRef.setValue(edMWeight.getText().toString());
-
                             signOut();
                             finish();
                         }
