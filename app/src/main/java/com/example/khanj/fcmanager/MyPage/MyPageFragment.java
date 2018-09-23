@@ -38,6 +38,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.otto.Subscribe;
 
+import io.realm.Realm;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -70,8 +72,7 @@ public class MyPageFragment extends BaseFragment {
 
     ImageView profileImg;
     static int REQUEST_PHOTO_ALBUM=1;
-
-
+    private Realm mRealm;
     private int rAge=0;
     private Double rHeight=0.0;
     private Double rPweight=0.0;
@@ -83,6 +84,8 @@ public class MyPageFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_my_page, container, false);
+        mRealm = Realm.getDefaultInstance();
+
         mAuth = FirebaseAuth.getInstance();
 
         txName = (TextView)v.findViewById(R.id.txname);
@@ -123,6 +126,10 @@ public class MyPageFragment extends BaseFragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(position==0){
                     Intent intent = new Intent(getContext(),DietRecordActivity.class);
+                    startActivity(intent);
+                }
+                else if(position==1){
+                    Intent intent = new Intent(getContext(),ViewRecordActivity.class);
                     startActivity(intent);
                 }
             }

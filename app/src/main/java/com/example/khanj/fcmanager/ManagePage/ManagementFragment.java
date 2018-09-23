@@ -30,11 +30,15 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
 
+import io.realm.Realm;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 
 public class ManagementFragment extends BaseFragment  {
+    private Realm mRealm;
+
     String time,kcal,menu;
     private final OneDayDecorator oneDayDecorator = new OneDayDecorator();
     Cursor cursor;
@@ -42,7 +46,7 @@ public class ManagementFragment extends BaseFragment  {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_management, container, false);
-
+        mRealm = Realm.getDefaultInstance();
         materialCalendarView = (MaterialCalendarView)v.findViewById(R.id.calendarView);
 
 

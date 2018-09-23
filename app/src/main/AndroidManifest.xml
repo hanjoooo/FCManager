@@ -36,7 +36,7 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".MyPage.ProfileActivity" />
         <activity android:name=".MyPage.ChangeRecordAcitivity" />
-        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".LoginActivity" />
         <activity android:name=".RegistActivity" />
         <activity android:name=".SplashActivity">
             <intent-filter>
@@ -45,7 +45,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MyPage.DietRecordActivity"></activity>
+        <activity android:name=".MyPage.DietRecordActivity" />
+        <activity android:name=".MyPage.ViewRecordActivity"></activity>
     </application>
 
 </manifest>

@@ -11,6 +11,10 @@ public class DietRecord {
     private int mCal=0;
     private int pCal =0;
 
+    public DietRecord(){
+
+    }
+
     public DietRecord(String data, Double pWeight,Double mWeight, int mCal, int pCal){
         this.date=data;
         this.pWeight=pWeight;

@@ -28,6 +28,8 @@ import com.squareup.otto.Subscribe;
 
 import java.io.File;
 
+import io.realm.Realm;
+
 import static io.realm.internal.SyncObjectServerFacade.getApplicationContext;
 
 /**
@@ -43,10 +45,13 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
     static String SAMPLEIMG="ic_launcher.png";
     ImageView iv;
     Dialog dialog;
+    private Realm mRealm;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home, container, false);
+        mRealm = Realm.getDefaultInstance();
+
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
         iv=(ImageView) v.findViewById(R.id.imgView);
         //가져올 사진의 이름을 정한다.
