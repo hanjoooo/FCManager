@@ -17,14 +17,23 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.khanj.fcmanager.Base.BaseFragment;
+import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.CalendarMode;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.squareup.otto.Subscribe;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -38,17 +47,29 @@ import io.realm.Realm;
 
 public class ManagementFragment extends BaseFragment  {
     private Realm mRealm;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
+    private DatabaseReference mConditionRef = mRootRef.child("users");
+    private DatabaseReference mchildRef;
+    private DatabaseReference IntakeRef;
 
-    String time,kcal,menu;
+
     private final OneDayDecorator oneDayDecorator = new OneDayDecorator();
     Cursor cursor;
     MaterialCalendarView materialCalendarView;
+
+    ArrayList<DietRecord> mItems = new ArrayList<>();
+    DietRecord mItem = new DietRecord();
+    String shot_Day =" ";
+    int record_Ok=0;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_management, container, false);
         mRealm = Realm.getDefaultInstance();
         materialCalendarView = (MaterialCalendarView)v.findViewById(R.id.calendarView);
 
+        mAuth = FirebaseAuth.getInstance();
 
         materialCalendarView.state().edit()
                 .setFirstDayOfWeek(Calendar.SUNDAY)
@@ -73,18 +94,37 @@ public class ManagementFragment extends BaseFragment  {
                 int Month = date.getMonth() + 1;
                 int Day = date.getDay();
 
-                Log.i("Year test", Year + "");
-                Log.i("Month test", Month + "");
-                Log.i("Day test", Day + "");
+                Log.i("Year test", Year + "년 ");
+                Log.i("Month test", Month + "월 ");
+                Log.i("Day test", Day + "일");
 
-                String shot_Day = Year + "." + Month + "." + Day;
+                if(Month  <10 && Day<10){
+                    shot_Day = Year + "년 " +"0"+ Month + "월 " +"0"+ Day+"일";
+                }else if(Month< 10){
+                    shot_Day = Year + "년 " +"0"+Month + "월 " + Day+"일";
+                }else if(Day<10){
+                    shot_Day = Year + "년 " + Month + "월 " +"0"+ Day+"일";
+                }else{
+                    shot_Day = Year + "년 " + Month + "월 " + Day+"일";
+                }
 
                 Log.i("shot_Day test", shot_Day + "");
                 materialCalendarView.clearSelection();
 
-
-                MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day+" 일지");
-                dialog.show(getActivity().getFragmentManager(),"dialog");
+                for(DietRecord a:mItems){
+                    if(a.getDate().equals(shot_Day)){
+                        record_Ok=1;
+                        mItem= a;
+                    }
+                }
+                if(record_Ok==1){
+                    MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day,mItem);
+                    dialog.show(getActivity().getFragmentManager(),"dialog");
+                }else{
+                    MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day);
+                    dialog.show(getActivity().getFragmentManager(),"dialog");
+                }
+                record_Ok=0;
             }
         });
 
@@ -150,6 +190,23 @@ public class ManagementFragment extends BaseFragment  {
             MyAlertDialogFragment frag = new MyAlertDialogFragment();
             Bundle args = new Bundle();
             args.putString("title", title);
+            args.putString("pweight","기록없음");
+            args.putString("mweight","기록없음");
+            args.putString("mkcal","기록없음");
+            args.putString("pkcal","기록없음");
+            args.putString("bmr","기록없음");
+            frag.setArguments(args);
+            return frag;
+        }
+        public static MyAlertDialogFragment newInstance(String title,DietRecord dietRecord){
+            MyAlertDialogFragment frag = new MyAlertDialogFragment();
+            Bundle args = new Bundle();
+            args.putString("title", title);
+            args.putString("pweight",dietRecord.getpWeight().toString()+" kg");
+            args.putString("mweight",dietRecord.getmWeight().toString()+" kg");
+            args.putString("mkcal",String.valueOf(dietRecord.getmCal())+" kcal");
+            args.putString("pkcal",String.valueOf(dietRecord.getpCal())+" kcal");
+            args.putString("bmr",String.valueOf(dietRecord.getBmr())+" kcal");
             frag.setArguments(args);
             return frag;
         }
@@ -158,18 +215,17 @@ public class ManagementFragment extends BaseFragment  {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             //return super.onCreateDialog(savedInstanceState);
-
             String title = getArguments().getString("title");
+            String pweight = getArguments().getString("pweight");
+            String mweight = getArguments().getString("mweight");
+            String mkcal = getArguments().getString("mkcal");
+            String pkcal = getArguments().getString("pkcal");
+            String bmr= getArguments().getString("bmr");
             return new AlertDialog.Builder(getActivity())
-                    .setIcon(R.mipmap.ic_launcher)
-                    .setTitle(title)
-                    .setMessage("기초대사량 : 1900 kcal\n섭취칼로리 : 3000 kcal")
-                    .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Log.i("MyLog", "취소 버튼이 눌림");
-                        }
-                    })
+                  //  .setIcon(R.mipmap.ic_launcher)
+                    .setTitle(title+"  기록")
+                    .setMessage("\n현재 몸무게  :  "+pweight+"\n\n"+"목표 몸무게  :  "+mweight+"\n\n"+"기초 대사량  :  "+bmr+"\n\n"+
+                            "권장 섭취량  :  "+mkcal+"\n\n"+"실제 섭취량  :  "+pkcal+"")
                     .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -178,5 +234,29 @@ public class ManagementFragment extends BaseFragment  {
                     })
                     .create();
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        mchildRef = mConditionRef.child(currentUser.getUid());
+        IntakeRef = mchildRef.child("DietRecord");
+        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mItems.clear();
+                for(DataSnapshot data:dataSnapshot.getChildren()){
+                    DietRecord record = data.getValue(DietRecord.class);
+                    mItems.add(record);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }

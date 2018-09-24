@@ -35,7 +35,6 @@
 
         <activity android:name=".MainActivity" />
         <activity android:name=".MyPage.ProfileActivity" />
-        <activity android:name=".MyPage.ChangeRecordAcitivity" />
         <activity android:name=".LoginActivity" />
         <activity android:name=".RegistActivity" />
         <activity android:name=".SplashActivity">

@@ -48,6 +48,7 @@ public class DietRecordActivity extends AppCompatActivity {
     private Double rHeight=0.0;
     private Double pWeight=0.0;
     private Double mWeight=0.0;
+    private Double BMR=0.0;
     private int pCalorie = 0;
     private int mCalorie = 0;
 
@@ -67,7 +68,6 @@ public class DietRecordActivity extends AppCompatActivity {
         txMkcal = (TextView)findViewById(R.id.mkcal);
         etPkcal = (EditText)findViewById(R.id.pkcal);
         btInsert = (Button)findViewById(R.id.insert);
-        btChange = (Button)findViewById(R.id.update);
         btCancle = (Button)findViewById(R.id.cancel);
 
         // 날짜는 현재 날짜로 고정
@@ -89,7 +89,7 @@ public class DietRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pCalorie = Integer.parseInt(etPkcal.getText().toString());
-                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie);
+                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue());
                 childIntakeRef = IntakeRef.child(dietRecord.getDate());
                 childIntakeRef.setValue(dietRecord);
                 Toast.makeText(DietRecordActivity.this, "일지 등록 완료!!", Toast.LENGTH_SHORT).show();
@@ -161,13 +161,13 @@ public class DietRecordActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String gender = dataSnapshot.getValue(String.class);
                 if(gender.equals("남자")){
-                    Double BMR =  ((13.7*(pWeight*0.8))+(5*rHeight)-(6.8*rAge))*1.375;
+                    BMR =  ((13.7*(pWeight*0.8))+(5*rHeight)-(6.8*rAge))*1.375;
                     Double changeweight = BMR*((mWeight - pWeight)/90);
                     mCalorie = BMR.intValue()+changeweight.intValue();
                     txMkcal.setText(mCalorie+" kcal");
                 }
                 else{
-                    Double BMR =  ((9.48*(pWeight*0.8))+(1.85*rHeight)-(4.7*rAge)+655)*1.2;
+                    BMR =  ((9.48*(pWeight*0.8))+(1.85*rHeight)-(4.7*rAge)+655)*1.2;
                     Double changeweight = BMR*((mWeight - pWeight)/90);
                     mCalorie = BMR.intValue()+changeweight.intValue();
                     txMkcal.setText(mCalorie+" kcal");

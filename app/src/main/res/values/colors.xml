@@ -22,4 +22,8 @@
     <color name="darkgray">#777777</color>
     <color name="whitegray">#dddddd</color>
     <color name="verywhitegray">#eeeeee</color>
+
+    <color name="blue">#2222ff</color>
+    <color name="red">#ff1111</color>
+    <color name="green">#00aa00</color>
 </resources>

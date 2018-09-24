@@ -28,20 +28,23 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginRight="25dp">
                 <TextView
-                    android:layout_width="100dp"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="권장 섭취량 "
+                    android:text="권장 섭취량"
                     android:textColor="#111"
+                    android:gravity="end"
                     android:layout_marginBottom="5dp"
                     />
-
                 <TextView
-                    android:layout_width="100dp"
+                    android:id="@+id/mkcal"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="실제 섭취량 "
+                    android:text="kcal"
                     android:textColor="#111"
+                    android:layout_gravity="end"
                     android:layout_marginBottom="5dp"/>
 
             </LinearLayout>
@@ -49,13 +52,15 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginRight="25dp">
+
                 <TextView
-                    android:id="@+id/mkcal"
-                    android:layout_width="wrap_content"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="kcal"
+                    android:text="실제 섭취량"
                     android:textColor="#111"
+                    android:gravity="end"
                     android:layout_marginBottom="5dp"/>
 
                 <TextView
@@ -63,7 +68,32 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="kcal"
+                    android:textColor="@color/green"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="5dp" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:text="예측 체중 증가량"
                     android:textColor="#111"
+                    android:gravity="end"
+                    android:layout_marginBottom="5dp"/>
+
+                <TextView
+                    android:id="@+id/weightgain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="kg"
+                    android:textColor="@color/blue"
+                    android:textStyle="bold"
+                    android:layout_gravity="end"
                     android:layout_marginBottom="5dp"/>
 
             </LinearLayout>

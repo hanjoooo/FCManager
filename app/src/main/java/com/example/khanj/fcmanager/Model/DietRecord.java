@@ -10,17 +10,19 @@ public class DietRecord {
     private Double mWeight = 0.0;
     private int mCal=0;
     private int pCal =0;
+    private int bmr = 0;
 
     public DietRecord(){
 
     }
 
-    public DietRecord(String data, Double pWeight,Double mWeight, int mCal, int pCal){
+    public DietRecord(String data, Double pWeight,Double mWeight, int mCal, int pCal,int Bmr){
         this.date=data;
         this.pWeight=pWeight;
         this.mWeight=mWeight;
         this.mCal=mCal;
         this.pCal=pCal;
+        this.bmr = Bmr;
     }
 
     public String getDate() {
@@ -37,6 +39,10 @@ public class DietRecord {
     }
     public int getpCal() {
         return pCal;
+    }
+
+    public int getBmr() {
+        return bmr;
     }
 }
 

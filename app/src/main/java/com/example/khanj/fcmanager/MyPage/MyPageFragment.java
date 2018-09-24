@@ -80,7 +80,7 @@ public class MyPageFragment extends BaseFragment {
     private int rCalorie = 0;
 
     static final String[] LIST_MENU = {"내 정보 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
-    static final String[] LIST2_MENU = {"일지 등록/수정","일지 기록보기","영양 정보보기","일일필요열랑 계산"};
+    static final String[] LIST2_MENU = {"일지 기록하기","일지 기록보기","영양 정보보기","일일필요열랑 계산"};
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_my_page, container, false);
