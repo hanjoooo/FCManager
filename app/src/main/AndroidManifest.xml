@@ -46,7 +46,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".MyPage.DietRecordActivity" />
-        <activity android:name=".MyPage.ViewRecordActivity"></activity>
+        <activity android:name=".MyPage.ViewRecordActivity" />
+        <activity android:name=".MyPage.BmrCrawlingActivity" />
+        <activity android:name=".MyPage.FoodCalorieCrawlingActivity"></activity>
     </application>
 
 </manifest>

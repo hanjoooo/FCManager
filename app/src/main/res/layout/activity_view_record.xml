@@ -3,23 +3,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-
-    <ScrollView
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="일지 기록보기"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:paddingTop="5dp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/whitegray"/>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        android:orientation="vertical"
+        android:padding="16dp">
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:scrollbarAlwaysDrawVerticalTrack="true" />
-    </ScrollView>
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
+                android:scrollbarAlwaysDrawVerticalTrack="true" />
+        </ScrollView>
+    </LinearLayout>
+
+
+
 
 
 </LinearLayout>

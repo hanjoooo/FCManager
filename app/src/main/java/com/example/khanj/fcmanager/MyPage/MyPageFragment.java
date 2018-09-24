@@ -79,8 +79,8 @@ public class MyPageFragment extends BaseFragment {
     private Double rMweight=0.0;
     private int rCalorie = 0;
 
-    static final String[] LIST_MENU = {"내 정보 수정","내 목표 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
-    static final String[] LIST2_MENU = {"일지 등록/수정","일지 기록보기","영양 정보보기"};
+    static final String[] LIST_MENU = {"내 정보 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
+    static final String[] LIST2_MENU = {"일지 등록/수정","일지 기록보기","영양 정보보기","일일필요열랑 계산"};
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_my_page, container, false);
@@ -113,10 +113,10 @@ public class MyPageFragment extends BaseFragment {
                     Intent intent = new Intent(getContext(),ProfileActivity.class);
                     startActivity(intent);
                 }
-                else if(position==2){
+                else if(position==1){
                     photoAlbum();
                 }
-                else if(position == 4){
+                else if(position == 3){
                     signOut();
                 }
             }
@@ -130,6 +130,14 @@ public class MyPageFragment extends BaseFragment {
                 }
                 else if(position==1){
                     Intent intent = new Intent(getContext(),ViewRecordActivity.class);
+                    startActivity(intent);
+                }
+                else if(position==2){
+                    Intent intent = new Intent(getContext(),FoodCalorieCrawlingActivity.class);
+                    startActivity(intent);
+                }
+                else if(position==3){
+                    Intent intent = new Intent(getContext(),BmrCrawlingActivity.class);
                     startActivity(intent);
                 }
             }
