@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Camera;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -29,6 +31,7 @@ import com.squareup.otto.Subscribe;
 import java.io.File;
 
 import io.realm.Realm;
+import jnr.ffi.annotations.In;
 
 import static io.realm.internal.SyncObjectServerFacade.getApplicationContext;
 
@@ -44,6 +47,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
     //첫번째 이미지 아이콘 샘플 이다.
     static String SAMPLEIMG="ic_launcher.png";
     ImageView iv;
+    ImageView cbutton;
     Dialog dialog;
     private Realm mRealm;
 
@@ -54,18 +58,49 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
         iv=(ImageView) v.findViewById(R.id.imgView);
+        cbutton= (ImageView)v.findViewById(R.id.camerabutton);
         //가져올 사진의 이름을 정한다.
-        v.findViewById(R.id.getCustom).setOnClickListener(this);
+        //v.findViewById(R.id.getCustom).setOnClickListener(this);
+        v.findViewById(R.id.camerabutton).setOnClickListener(this);
+        /*
+        cbutton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()){
+                    case MotionEvent.ACTION_DOWN:{
+                        cbutton.setImageResource(R.drawable.pluscamera2);
+                        break;
+                    }
+                    case MotionEvent.ACTION_UP:{
+                        Intent intent = new Intent(getActivity(), CameraActivity.class);
+                        startActivityForResult(intent,REQUEST_PICTURE);
+                        break;
+                    }
+                    case MotionEvent.ACTION_CANCEL:{
+                        cbutton.setImageResource(R.drawable.pluscamera);
+                    }
+                }
+                return false;
+            }
+        });
+        */
         return v;
         //
     }
+
 
     @Override
     public void onClick(View v){
         //첫번째로 사진가져오기를 클릭하면 또다른 레이아웃것을 다이어로그로 출력해서
 
         //선택하게끔 하자 !!!!
+        if(v.getId()==R.id.camerabutton){
+            Intent intent = new Intent(getActivity(), CameraActivity.class);
+            startActivityForResult(intent,REQUEST_PICTURE);
+        }
+        /*
         if(v.getId()==R.id.getCustom){
+
             //다이어로그를 먼저만들어낸다.
             AlertDialog.Builder builder=new AlertDialog.Builder(this.getContext());
             //이곳에 만드는 다이어로그의 layout 을 정한다.
@@ -78,15 +113,19 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
             //지금까지 만든 builder를 생성하고, 띄우자.!!!
             dialog=builder.create();
             dialog.show();
-        }else if(v.getId()==R.id.camera){
+        }
+        else if(v.getId()==R.id.camera){
             //카메라버튼인경우,일단 다이어로그를 끄고 사진을 찍는 함수를 불러오자
             dialog.dismiss();
-            takePicture();
+            //takePicture();
+            Intent intent = new Intent(getActivity(), CameraActivity.class);
+            startActivityForResult(intent,REQUEST_PICTURE);
         }else if(v.getId()==R.id.photoAlbum){
             //이경우역시 다이어로그를 끄고 앨범을 불러오는 함수를 불러오자!!
             dialog.dismiss();
             photoAlbum();
         }
+        */
     }
     void takePicture(){
         //사진을 찍는 인텐트를 가져온다. 그인텐트는 MediaStore에있는
@@ -129,13 +168,16 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         //그후에 사진 조정한것을 다시 돌려보낸다.
         return BitmapFactory.decodeFile(file.getAbsolutePath(),options);
     }
+
     public void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
 
         if(resultCode==getActivity().RESULT_OK){
             if(requestCode==REQUEST_PICTURE){
                 //사진을 찍은경우 그사진을 로드해온다.
-                iv.setImageBitmap(loadPicture());
+                //iv.setImageBitmap(loadPicture());
+                String path = data.getExtras().getString("path");
+                iv.setImageURI(Uri.parse(path));
             }
 
             if(requestCode==REQUEST_PHOTO_ALBUM){

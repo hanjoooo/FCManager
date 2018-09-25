@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,6 +23,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -28,33 +31,44 @@
                     android:layout_marginTop="10dp"
                     android:text="오늘 남은 칼로리"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="25dp"/>
+                    android:textSize="22dp"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="3000 - 0 = 3000(kcal) "
                     android:layout_marginLeft="25dp"
-                    android:layout_marginTop="10dp"
-                    android:textSize="20dp"
+                    android:layout_marginTop="7dp"
+                    android:textSize="18dp"
                     android:layout_marginBottom="10dp"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>
 
-
+<!--
         <Button
             android:id="@+id/getCustom"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="사진 불러오기 "
+            android:background="@color/colorCards"
+            android:textColor="@color/colorPrimary"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"/>
-
+-->
         <ImageView
             android:id="@+id/imgView"
             android:layout_width="fill_parent"
-            android:layout_height="450dp" />
+            android:layout_height="450dp"
+            android:layout_marginTop="10dp" />
 
+        <ImageView
+            android:id="@+id/camerabutton"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/camerapressed"
+            android:layout_gravity="end"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="10dp"/>
 
     </LinearLayout>
 

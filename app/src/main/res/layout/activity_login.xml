@@ -54,9 +54,10 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text=" 로 그 인 "
-        android:textColor="#111"
         android:textSize="20sp"
         android:textStyle="bold|italic"
+        android:background="@color/colorCards"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/Password" />
@@ -85,7 +86,7 @@
             android:layout_marginTop="8dp"
             android:text="FC MANAGER"
             android:textSize="50dp"
-            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.51"
@@ -95,21 +96,19 @@
     </android.support.constraint.ConstraintLayout>
 
 
-
-
-
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         android:orientation="horizontal"
-        android:gravity="center"
+        android:gravity="end"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/Login">
+
         <TextView
             android:id="@+id/text"
             android:layout_width="wrap_content"
@@ -117,18 +116,20 @@
             android:clickable="true"
             android:focusable="true"
             android:text="계정이 없으신가요?  "
-            android:textStyle="bold|italic"
+            android:textColor="#696969"
             android:textSize="20dp"
-            android:textColor="#696969" />
+            android:textStyle="bold|italic" />
+
         <TextView
             android:id="@+id/txregist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:textSize="20dp"
             android:text="가입하기"
-            android:textColor="#111" />
+            android:layout_marginRight="20dp"
+            android:textColor="@color/colorPrimary"
+            android:textSize="20dp" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
