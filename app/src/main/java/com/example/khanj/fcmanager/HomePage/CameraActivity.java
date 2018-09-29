@@ -39,7 +39,7 @@ public class CameraActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:{
-                        cameraButton.setImageResource(R.drawable.cbutton2);
+                        cameraButton.setImageResource(R.drawable.cbutton);
                         break;
                     }
                     case MotionEvent.ACTION_UP:{
@@ -63,7 +63,7 @@ public class CameraActivity extends AppCompatActivity {
                         });
                     }
                     case MotionEvent.ACTION_CANCEL:{
-                        cameraButton.setImageResource(R.drawable.cbutton);
+                        cameraButton.setImageResource(R.drawable.cbutton2);
                     }
 
                 }

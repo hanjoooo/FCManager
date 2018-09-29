@@ -22,6 +22,7 @@ android {
     realm {
         syncEnabled = true;
     }
+
 }
 
 dependencies {
@@ -52,7 +53,10 @@ dependencies {
     compile 'com.google.firebase:firebase-storage:11.8.0'
     implementation 'com.firebaseui:firebase-ui-storage:0.6.0'
     compile 'com.facebook.android:facebook-android-sdk:4.+'
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     implementation 'com.facebook.android:facebook-login:[4,5)'
     implementation files('libs/jsoup-1.11.3.jar')
+
+
 }
 apply plugin: 'com.google.gms.google-services'

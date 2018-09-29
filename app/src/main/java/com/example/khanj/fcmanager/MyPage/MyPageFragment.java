@@ -1,6 +1,8 @@
 package com.example.khanj.fcmanager.MyPage;
 
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -9,6 +11,9 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -21,9 +26,25 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.signature.StringSignature;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.LoginActivity;
+import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +58,16 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.otto.Subscribe;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 
@@ -58,11 +89,14 @@ public class MyPageFragment extends BaseFragment {
     private DatabaseReference childHeightRef;
     private DatabaseReference childPWeightRef;
     private DatabaseReference childMWeightRef;
+    private DatabaseReference IntakeRef;
+
 
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference storageRef = storage.getReference();
     private StorageReference schildRef;
     private StorageReference sprofileRef;
+
 
     TextView txName;
     TextView txPWeight;
@@ -71,6 +105,10 @@ public class MyPageFragment extends BaseFragment {
     TextView txCalorie;
 
     ImageView profileImg;
+
+    private LineChart lineChart;
+    private PieChart pieChart;
+
     static int REQUEST_PHOTO_ALBUM=1;
     private Realm mRealm;
     private int rAge=0;
@@ -80,7 +118,7 @@ public class MyPageFragment extends BaseFragment {
     private int rCalorie = 0;
 
     static final String[] LIST_MENU = {"내 정보 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
-    static final String[] LIST2_MENU = {"일지 기록하기","일지 기록보기","영양 정보보기","일일필요열랑 계산"};
+    static final String[] LIST2_MENU = {"일지 기록하기","일지 기록보기","체중 변화보기","영양 정보보기","일일필요열랑 계산"};
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_my_page, container, false);
@@ -94,7 +132,8 @@ public class MyPageFragment extends BaseFragment {
         txCalorie = (TextView)v.findViewById(R.id.txcalorie);
         txBMR = (TextView)v.findViewById(R.id.txbmr);
         profileImg = (ImageView)v.findViewById(R.id.profileimg);
-
+        //lineChart = (LineChart)v.findViewById(R.id.chart);
+        pieChart = (PieChart)v.findViewById(R.id.piechart);
 
         ArrayAdapter adapter = new ArrayAdapter(this.getActivity(),android.R.layout.simple_list_item_1,LIST_MENU);
         ArrayAdapter adapter2 = new ArrayAdapter(this.getActivity(),android.R.layout.simple_list_item_1,LIST2_MENU);
@@ -132,11 +171,11 @@ public class MyPageFragment extends BaseFragment {
                     Intent intent = new Intent(getContext(),ViewRecordActivity.class);
                     startActivity(intent);
                 }
-                else if(position==2){
+                else if(position==3){
                     Intent intent = new Intent(getContext(),FoodCalorieCrawlingActivity.class);
                     startActivity(intent);
                 }
-                else if(position==3){
+                else if(position==4){
                     Intent intent = new Intent(getContext(),BmrCrawlingActivity.class);
                     startActivity(intent);
                 }
@@ -150,6 +189,10 @@ public class MyPageFragment extends BaseFragment {
                return false;
            }
        });
+
+
+
+
         return v;
         //
     }
@@ -167,6 +210,111 @@ public class MyPageFragment extends BaseFragment {
         childPWeightRef = mchildRef.child("Pweight");
         childMWeightRef = mchildRef.child("Mweight");
         sprofileRef = schildRef.child("profileImg");
+        IntakeRef = mchildRef.child("DietRecord");
+        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    ArrayList<DietRecord> mItems = new ArrayList<>();
+                    for(DataSnapshot data:dataSnapshot.getChildren()){
+                        DietRecord record = data.getValue(DietRecord.class);
+                        mItems.add(record);
+                    }
+/*
+                    List<Entry>entries = new ArrayList<>();
+                    entries.add(new Entry(0,mItems.get(0).getpCal()));
+                    entries.add(new Entry(2,mItems.get(1).getpCal()));
+                    entries.add(new Entry(4,mItems.get(2).getpCal()));
+                    entries.add(new Entry(6, mItems.get(3).getpCal()));
+                    entries.add(new Entry(8, mItems.get(4).getpCal()));
+
+
+                    LineDataSet lineDataSet = new LineDataSet(entries, "일일섭취칼로리");
+                    lineDataSet.setLineWidth(2);
+                    lineDataSet.setCircleRadius(6);
+                    lineDataSet.setCircleColor(Color.parseColor("#FFA1B4DC"));
+                    lineDataSet.setCircleColorHole(Color.BLUE);
+                    lineDataSet.setColor(Color.parseColor("#FFA1B4DC"));
+                    lineDataSet.setDrawCircleHole(true);
+                    lineDataSet.setDrawCircles(true);
+                    lineDataSet.setDrawHorizontalHighlightIndicator(false);
+                    lineDataSet.setDrawHighlightIndicators(false);
+                    lineDataSet.setDrawValues(false);
+                    lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+
+                    LineData lineData = new LineData(lineDataSet);
+                    lineChart.setData(lineData);
+
+                    XAxis xAxis = lineChart.getXAxis();
+                    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+                    xAxis.setTextColor(Color.BLACK);
+                    xAxis.enableGridDashedLine(8, 24, 0);
+
+                    YAxis yLAxis = lineChart.getAxisLeft();
+                    yLAxis.setTextColor(Color.BLACK);
+
+                    YAxis yRAxis = lineChart.getAxisRight();
+                    yRAxis.setDrawLabels(false);
+                    yRAxis.setDrawAxisLine(false);
+                    yRAxis.setDrawGridLines(false);
+
+                    Description description = new Description();
+                    description.setText("");
+
+                    lineChart.setDoubleTapToZoomEnabled(false);
+                    lineChart.setDrawGridBackground(false);
+                    lineChart.setDescription(description);
+                    lineChart.animateY(2000, Easing.EasingOption.EaseInCubic);
+                    lineChart.invalidate();
+*/
+
+                    pieChart.setUsePercentValues(true);
+                    pieChart.getDescription().setEnabled(false);
+                    pieChart.setExtraOffsets(5,10,5,5);
+
+                    pieChart.setDragDecelerationFrictionCoef(0.95f);
+
+                    pieChart.setDrawHoleEnabled(false);
+                    pieChart.setHoleColor(Color.WHITE);
+                    pieChart.setTransparentCircleRadius(61f);
+
+                    ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
+
+                    yValues.add(new PieEntry(1,"단백질"));
+                    yValues.add(new PieEntry(1,"탄수화물"));
+                    yValues.add(new PieEntry(1,"지방"));
+                    yValues.add(new PieEntry(1,"비타민"));
+                    yValues.add(new PieEntry(1,"무기질"));
+
+                    Description descriptions = new Description();
+                    descriptions.setText(""); //라벨
+                    descriptions.setTextSize(15);
+                    pieChart.setDescription(descriptions);
+
+                    pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
+
+                    PieDataSet dataSet = new PieDataSet(yValues,"");
+                    dataSet.setSliceSpace(3f);
+                    dataSet.setSelectionShift(5f);
+                    dataSet.setColors(ColorTemplate.JOYFUL_COLORS);
+
+                    PieData data = new PieData((dataSet));
+                    data.setValueTextSize(10f);
+                    data.setValueTextColor(Color.YELLOW);
+
+                    pieChart.setData(data);
+
+
+                }
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         try{
             Glide.with(MyPageFragment.this.getActivity()).using(new FirebaseImageLoader())
                     .load(sprofileRef).signature(new StringSignature(String.valueOf(System.currentTimeMillis()))).into(profileImg);
@@ -287,6 +435,9 @@ public class MyPageFragment extends BaseFragment {
         intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent,REQUEST_PHOTO_ALBUM);
     }
+
+
+
     private void signOut() {
         showProgressDialog();
         mAuth.signOut();
@@ -295,6 +446,7 @@ public class MyPageFragment extends BaseFragment {
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         startActivity(intent);
     }
+
     public void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == getActivity().RESULT_OK){

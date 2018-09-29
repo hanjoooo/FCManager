@@ -51,7 +51,7 @@
         <activity android:name=".MyPage.ViewRecordActivity" />
         <activity android:name=".MyPage.BmrCrawlingActivity" />
         <activity android:name=".MyPage.FoodCalorieCrawlingActivity" />
-        <activity android:name=".HomePage.CameraActivity"></activity>
+        <activity android:name=".HomePage.CameraActivity" />
     </application>
 
 </manifest>
