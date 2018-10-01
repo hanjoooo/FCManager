@@ -89,7 +89,7 @@ public class DietRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pCalorie = Integer.parseInt(etPkcal.getText().toString());
-                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue());
+                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue(),0);
                 childIntakeRef = IntakeRef.child(dietRecord.getDate());
                 childIntakeRef.setValue(dietRecord);
                 Toast.makeText(DietRecordActivity.this, "일지 등록 완료!!", Toast.LENGTH_SHORT).show();

@@ -27,7 +27,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@color/colorPrimary"
                 android:gravity="center">
 
                 <TextView
@@ -37,7 +36,7 @@
                     android:layout_marginBottom="10dp"
                     android:layout_marginTop="10dp"
                     android:textSize="20dp"
-                    android:textColor="@color/colorCards"
+                    android:textColor="@color/colorPrimary"
                     android:ellipsize="marquee"
                     android:marqueeRepeatLimit="marquee_forever"
                     android:singleLine="true"
@@ -46,6 +45,22 @@
                     android:scrollHorizontally="true"
                     android:gravity="center"
                     android:textAppearance="?android:attr/textAppearanceLarge"/>
+                <TextView
+                    android:id="@+id/txstep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:textSize="20dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="걸음수" />
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnStopService"
+                    android:text="걸음수 등록하기"
+                    android:background="@color/colorCards"
+                    android:textColor="@color/colorPrimary"/>
 
 
             </LinearLayout>

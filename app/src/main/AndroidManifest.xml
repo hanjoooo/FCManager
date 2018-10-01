@@ -14,6 +14,7 @@
 
     <uses-feature android:name="android.hardware.Camera" />
     <uses-feature android:name="android.hardware.Camera.autofocus" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:allowBackup="true"
@@ -52,6 +53,7 @@
         <activity android:name=".MyPage.BmrCrawlingActivity" />
         <activity android:name=".MyPage.FoodCalorieCrawlingActivity" />
         <activity android:name=".HomePage.CameraActivity" />
+
     </application>
 
 </manifest>

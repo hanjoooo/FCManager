@@ -48,11 +48,12 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.It
     @Override
     public void onBindViewHolder(RecordListAdapter.ItemViewHolder holder, final int position){
         int BMR = mItems.get(position).getBmr();
-        Double weightGain = ((mItems.get(position).getpCal()-mItems.get(position).getmCal())/Double.valueOf(BMR));
+        Double weightGain = ((mItems.get(position).getpCal()-mItems.get(position).getmCal()-mItems.get(position).getExCal())/Double.valueOf(BMR));
         weightGain = Double.parseDouble(String.format("%.4f",weightGain));
         holder.txDate.setText(mItems.get(position).getDate());
         holder.txmKcal.setText(String.valueOf(mItems.get(position).getmCal())+" kcal");
         holder.txpKcal.setText(String.valueOf(mItems.get(position).getpCal())+" kcal");
+        holder.txexCal.setText(String.valueOf(mItems.get(position).getExCal())+" kcal");
         holder.txwGain.setText(String.valueOf(weightGain)+" kg");
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,12 +73,14 @@ public class RecordListAdapter extends RecyclerView.Adapter<RecordListAdapter.It
         private TextView txpKcal;
         private TextView txmKcal;
         private TextView txwGain;
+        private TextView txexCal;
         public ItemViewHolder(View itemView) {
             super(itemView);
             txDate = (TextView) itemView.findViewById(R.id.date);
             txmKcal = (TextView) itemView.findViewById(R.id.mkcal);
             txpKcal = (TextView) itemView.findViewById(R.id.pkcal);
             txwGain = (TextView) itemView.findViewById(R.id.weightgain);
+            txexCal = (TextView) itemView.findViewById(R.id.exkcal);
 
         }
     }

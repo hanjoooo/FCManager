@@ -3,12 +3,19 @@ package com.example.khanj.fcmanager.HomePage;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,13 +25,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.Model.DietRecord;
@@ -54,13 +65,14 @@ import java.util.Date;
 import io.realm.Realm;
 import jnr.ffi.annotations.In;
 
+import static android.content.Context.SENSOR_SERVICE;
 import static io.realm.internal.SyncObjectServerFacade.getApplicationContext;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 
-public class HomeFragment extends BaseFragment implements View.OnClickListener {
+public class HomeFragment extends BaseFragment implements View.OnClickListener , SensorEventListener {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -81,6 +93,25 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
     ImageView cbutton;
     Dialog dialog;
     TextView txcLeft;
+
+
+    public static int cnt = 0;
+    private TextView txstep;
+    private Button resetBtn;
+    private long lastTime;
+    private float speed;
+    private float lastX;
+    private float lastY;
+    private float lastZ;
+    private float x, y, z;
+    private static final int SHAKE_THRESHOLD = 800;
+    private static final int DATA_X = SensorManager.DATA_X;
+    private static final int DATA_Y = SensorManager.DATA_Y;
+    private static final int DATA_Z = SensorManager.DATA_Z;
+    private SensorManager sensorManager;
+    private Sensor accelerormeterSensor;
+    private int excal=0;
+
     private Realm mRealm;
     private PieChart mChart;
 
@@ -92,6 +123,28 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
         mAuth = FirebaseAuth.getInstance();
 
+        getActivity().getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.customtitlebar);
+        sensorManager = (SensorManager) getActivity().getSystemService(SENSOR_SERVICE);
+        accelerormeterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        txcLeft = (TextView)v.findViewById(R.id.leftcal);
+
+        txstep = (TextView) v.findViewById(R.id.txstep);
+        resetBtn = (Button) v.findViewById(R.id.btnStopService);
+        txstep.setText("오늘의 걸음 수  :  "+cnt);
+
+        resetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Double stepCal = cnt*0.03;
+                excal = excal+stepCal.intValue();
+                long now = System.currentTimeMillis();
+                final Date date = new Date(now);
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+                IntakeRef.child(simpleDateFormat.format(date)).child("exCal").setValue(excal);
+                cnt=0;
+                txstep.setText("오늘의 걸음 수  :  "+cnt);
+            }
+        });
         /*
         mChart = (PieChart)v.findViewById(R.id.piechart);
         mChart.setUsePercentValues(true);
@@ -108,9 +161,6 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
         iv=(ImageView) v.findViewById(R.id.imgView);
         cbutton= (ImageView)v.findViewById(R.id.camerabutton);
-        txcLeft = (TextView)v.findViewById(R.id.leftcal);
-
-        txcLeft.setSelected(true);
 
         //가져올 사진의 이름을 정한다.
         //v.findViewById(R.id.getCustom).setOnClickListener(this);
@@ -164,6 +214,10 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
     @Override
     public void onStart() {
         super.onStart();
+        if (accelerormeterSensor != null)
+            sensorManager.registerListener(this, accelerormeterSensor,
+                    SensorManager.SENSOR_DELAY_GAME);
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mchildRef = mConditionRef.child(currentUser.getUid());
         IntakeRef = mchildRef.child("DietRecord");
@@ -176,8 +230,9 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     DietRecord dietRecord = dataSnapshot.getValue(DietRecord.class);
-                    txcLeft.setText("오늘 남은 칼로리  :  "+dietRecord.getmCal()+"  -  " +dietRecord.getpCal()+"  =  "+(dietRecord.getmCal()-dietRecord.getpCal())+" kcal");
-                    txcLeft.setSelected(true);
+                    excal = dietRecord.getExCal();
+                    txcLeft.setText("오늘 남은 칼로리  :  "+dietRecord.getmCal()+"  -  " +dietRecord.getpCal()+"  -  "+dietRecord.getExCal()
+                            +"  =  "+(dietRecord.getmCal()-dietRecord.getpCal()-dietRecord.getExCal())+" kcal");
                 }
 
             }
@@ -189,6 +244,39 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (sensorManager != null)
+            sensorManager.unregisterListener(this);
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            long currentTime = System.currentTimeMillis();
+            long gabOfTime = (currentTime - lastTime);
+            if (gabOfTime > 100) {
+                lastTime = currentTime;
+                x = event.values[SensorManager.DATA_X];
+                y = event.values[SensorManager.DATA_Y];
+                z = event.values[SensorManager.DATA_Z];
+
+                speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;
+
+                if (speed > SHAKE_THRESHOLD) {
+                    txstep.setText("오늘의 걸음 수  :  " + (++cnt));
+                }
+                lastX = event.values[DATA_X];
+                lastY = event.values[DATA_Y];
+                lastZ = event.values[DATA_Z];
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
     @Override
     public void onClick(View v){
         //첫번째로 사진가져오기를 클릭하면 또다른 레이아웃것을 다이어로그로 출력해서
