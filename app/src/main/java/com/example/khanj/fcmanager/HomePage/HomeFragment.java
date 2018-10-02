@@ -3,32 +3,33 @@ package com.example.khanj.fcmanager.HomePage;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -37,17 +38,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.R;
-import com.example.khanj.fcmanager.event.ActivityResultEvent;
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
+import com.example.khanj.fcmanager.Service.StepCheckService;
+
+import com.example.khanj.fcmanager.Service.StepValue;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -63,23 +66,22 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import io.realm.Realm;
-import jnr.ffi.annotations.In;
 
-import static android.content.Context.SENSOR_SERVICE;
+import static android.content.Context.BIND_AUTO_CREATE;
 import static io.realm.internal.SyncObjectServerFacade.getApplicationContext;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 
-public class HomeFragment extends BaseFragment implements View.OnClickListener , SensorEventListener {
+public class HomeFragment extends BaseFragment implements View.OnClickListener{
 
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mConditionRef = mRootRef.child("users");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
+    private DatabaseReference stepRef;
 
 
     //사진으로 전송시 되돌려 받을 번호
@@ -95,69 +97,40 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
     TextView txcLeft;
 
 
-    public static int cnt = 0;
     private TextView txstep;
-    private Button resetBtn;
-    private long lastTime;
-    private float speed;
-    private float lastX;
-    private float lastY;
-    private float lastZ;
-    private float x, y, z;
-    private static final int SHAKE_THRESHOLD = 800;
-    private static final int DATA_X = SensorManager.DATA_X;
-    private static final int DATA_Y = SensorManager.DATA_Y;
-    private static final int DATA_Z = SensorManager.DATA_Z;
-    private SensorManager sensorManager;
-    private Sensor accelerormeterSensor;
+
     private int excal=0;
+    private String filepath;
 
     private Realm mRealm;
-    private PieChart mChart;
 
     private String[] Calorie = new String[]{"섭취한 칼로리","남은 칼로리"};
+
+    private StepCheckService mService;
+    private boolean isBind;
+
+    ServiceConnection soonn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            StepCheckService.MyBinder myBinder = (StepCheckService.MyBinder) service;
+            mService = myBinder.getService();
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+            isBind = false;
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home, container, false);
         mRealm = Realm.getDefaultInstance();
-
         mAuth = FirebaseAuth.getInstance();
-
-        getActivity().getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.customtitlebar);
-        sensorManager = (SensorManager) getActivity().getSystemService(SENSOR_SERVICE);
-        accelerormeterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         txcLeft = (TextView)v.findViewById(R.id.leftcal);
-
         txstep = (TextView) v.findViewById(R.id.txstep);
-        resetBtn = (Button) v.findViewById(R.id.btnStopService);
-        txstep.setText("오늘의 걸음 수  :  "+cnt);
-
-        resetBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Double stepCal = cnt*0.03;
-                excal = excal+stepCal.intValue();
-                long now = System.currentTimeMillis();
-                final Date date = new Date(now);
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
-                IntakeRef.child(simpleDateFormat.format(date)).child("exCal").setValue(excal);
-                cnt=0;
-                txstep.setText("오늘의 걸음 수  :  "+cnt);
-            }
-        });
-        /*
-        mChart = (PieChart)v.findViewById(R.id.piechart);
-        mChart.setUsePercentValues(true);
-        mChart.setDrawHoleEnabled(true);
-        mChart.setMaxAngle(180);
-        mChart.setRotationAngle(180);
-        mChart.setCenterTextOffset(0,-20);
-        mChart.getDescription().setEnabled(false);
-        setData(2,100);
-
-        mChart.animateY(1000, Easing.EasingOption.EaseInOutCubic);
-        */
-
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
         iv=(ImageView) v.findViewById(R.id.imgView);
         cbutton= (ImageView)v.findViewById(R.id.camerabutton);
@@ -165,6 +138,43 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
         //가져올 사진의 이름을 정한다.
         //v.findViewById(R.id.getCustom).setOnClickListener(this);
         v.findViewById(R.id.camerabutton).setOnClickListener(this);
+
+        getActivity().getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.customtitlebar);
+
+        txstep.setText("오늘의 걸음 수  :  "+0);
+
+
+        getActivity().startService(new Intent(HomeFragment.this.getActivity(),StepCheckService.class));
+        getActivity().bindService(new Intent(HomeFragment.this.getActivity(), StepCheckService.class), soonn, BIND_AUTO_CREATE);
+
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                getApplicationContext(),
+                "ap-northeast-2:366b14a8-de76-447e-b370-751ccb6a8da8", // 자격 증명 풀 ID
+                Regions.AP_NORTHEAST_2 // 리전
+        );
+
+        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
+        final TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
+        s3.setRegion(Region.getRegion(Regions.AP_NORTHEAST_2));
+        s3.setEndpoint("s3.ap-northeast-2.amazonaws.com");
+
+
+
+        iv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final File file = new File(filepath);
+                TransferObserver observer = transferUtility.upload(
+                        "s3fcmanager", /* 업로드 할 버킷 이름 */
+                        "picture", /* 버킷에 저장할 파일의 이름 */
+                        file/* 버킷에 저장할 파일 */
+                );
+                Toast.makeText(getActivity(), "사진을 등록하였습니다.", Toast.LENGTH_SHORT).show();
+                // Amazon Cognito 인증 공급자를 초기화합니다
+                return false;
+            }
+        });
+
         /*
         cbutton.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -191,36 +201,15 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
         //
     }
 
-    private void setData(int count,int range){
-        ArrayList<PieEntry> values = new ArrayList<>();
-
-        values.add(new PieEntry(80,Calorie[0]));
-        values.add(new PieEntry(20,Calorie[1]));
-
-        PieDataSet dataSet = new PieDataSet(values,"");
-        dataSet.setSelectionShift(3f);
-        dataSet.setSliceSpace(5f);
-        dataSet.setColors(ColorTemplate.PASTEL_COLORS);
-
-        PieData data = new PieData(dataSet);
-        data.setValueFormatter(new PercentFormatter());
-        data.setValueTextSize(10f);
-        data.setValueTextColor(Color.WHITE);
-        mChart.setData(data);
-        mChart.invalidate();
-    }
 
 
     @Override
     public void onStart() {
         super.onStart();
-        if (accelerormeterSensor != null)
-            sensorManager.registerListener(this, accelerormeterSensor,
-                    SensorManager.SENSOR_DELAY_GAME);
-
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mchildRef = mConditionRef.child(currentUser.getUid());
         IntakeRef = mchildRef.child("DietRecord");
+        stepRef = mchildRef.child("curStep");
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
@@ -233,6 +222,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
                     excal = dietRecord.getExCal();
                     txcLeft.setText("오늘 남은 칼로리  :  "+dietRecord.getmCal()+"  -  " +dietRecord.getpCal()+"  -  "+dietRecord.getExCal()
                             +"  =  "+(dietRecord.getmCal()-dietRecord.getpCal()-dietRecord.getExCal())+" kcal");
+                    txcLeft.setSelected(true);
                 }
 
             }
@@ -242,41 +232,21 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
 
             }
         });
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (sensorManager != null)
-            sensorManager.unregisterListener(this);
-    }
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            long currentTime = System.currentTimeMillis();
-            long gabOfTime = (currentTime - lastTime);
-            if (gabOfTime > 100) {
-                lastTime = currentTime;
-                x = event.values[SensorManager.DATA_X];
-                y = event.values[SensorManager.DATA_Y];
-                z = event.values[SensorManager.DATA_Z];
-
-                speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;
-
-                if (speed > SHAKE_THRESHOLD) {
-                    txstep.setText("오늘의 걸음 수  :  " + (++cnt));
+        stepRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    txstep.setText("오늘의 걸음 수  :  "+dataSnapshot.getValue());
                 }
-                lastX = event.values[DATA_X];
-                lastY = event.values[DATA_Y];
-                lastZ = event.values[DATA_Z];
             }
-        }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
     @Override
     public void onClick(View v){
         //첫번째로 사진가져오기를 클릭하면 또다른 레이아웃것을 다이어로그로 출력해서
@@ -406,6 +376,13 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
                 //사진을 찍은경우 그사진을 로드해온다.
                 //iv.setImageBitmap(loadPicture());
                 String path = data.getExtras().getString("path");
+                String[] projection = { MediaStore.Images.Media.DATA };
+                Cursor cursor = getActivity().getContentResolver().query(Uri.parse(path),projection,null,null,null);
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                cursor.moveToFirst();
+                String s=cursor.getString(column_index);
+                filepath = s;
+                cursor.close();
                 iv.setImageURI(Uri.parse(path));
             }
 
@@ -417,16 +394,4 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener ,
 
     }
 
-    @Subscribe
-    public void onActivityResult(ActivityResultEvent activityResultEvent) {
-        onActivityResult(activityResultEvent.getRequestCode(), activityResultEvent.getResultCode(), activityResultEvent.getData());
-        if(activityResultEvent.getRequestCode()==REQUEST_PICTURE){
-            //사진을 찍은경우 그사진을 로드해온다.
-            //iv.setImageBitmap(loadPicture());
-        }
-        else if(activityResultEvent.getRequestCode()==REQUEST_PHOTO_ALBUM){
-            //앨범에서 호출한경우 data는 이전인텐트(사진갤러리)에서 선택한 영역을 가져오게된다.
-            //iv.setImageURI(activityResultEvent.getData().getData());
-        }
-    }
 }

@@ -54,6 +54,9 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-storage:0.6.0'
     compile 'com.facebook.android:facebook-android-sdk:4.+'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+    compile 'com.amazonaws:aws-android-sdk-core:2.+'
+    compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.+'
     implementation 'com.facebook.android:facebook-login:[4,5)'
     implementation files('libs/jsoup-1.11.3.jar')
 

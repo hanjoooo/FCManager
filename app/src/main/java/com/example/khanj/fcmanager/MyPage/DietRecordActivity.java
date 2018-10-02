@@ -1,6 +1,5 @@
 package com.example.khanj.fcmanager.MyPage;
 
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -34,6 +33,7 @@ public class DietRecordActivity extends AppCompatActivity {
     private DatabaseReference childGenderRef;
     private DatabaseReference childAgeRef;
     private DatabaseReference childHeightRef;
+    private DatabaseReference childStepRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference childIntakeRef;
 
@@ -42,6 +42,7 @@ public class DietRecordActivity extends AppCompatActivity {
     private TextView txMweight;
     private TextView txMkcal;
     private EditText etPkcal;
+    private EditText exkcal;
 
     private String today = " ";
     private int rAge=0;
@@ -56,6 +57,7 @@ public class DietRecordActivity extends AppCompatActivity {
     private Button btChange;
     private Button btCancle;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +69,7 @@ public class DietRecordActivity extends AppCompatActivity {
         txMweight = (TextView)findViewById(R.id.mweight);
         txMkcal = (TextView)findViewById(R.id.mkcal);
         etPkcal = (EditText)findViewById(R.id.pkcal);
+        exkcal = (EditText)findViewById(R.id.excal);
         btInsert = (Button)findViewById(R.id.insert);
         btCancle = (Button)findViewById(R.id.cancel);
 
@@ -89,7 +92,8 @@ public class DietRecordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pCalorie = Integer.parseInt(etPkcal.getText().toString());
-                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue(),0);
+                int excal = Integer.parseInt(exkcal.getText().toString());
+                DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue(),excal);
                 childIntakeRef = IntakeRef.child(dietRecord.getDate());
                 childIntakeRef.setValue(dietRecord);
                 Toast.makeText(DietRecordActivity.this, "일지 등록 완료!!", Toast.LENGTH_SHORT).show();
@@ -110,6 +114,7 @@ public class DietRecordActivity extends AppCompatActivity {
         childPWeightRef = mchildRef.child("Pweight");
         childMWeightRef = mchildRef.child("Mweight");
         IntakeRef = mchildRef.child("DietRecord");
+        childStepRef = mchildRef.child("curStep");
 
         childAgeRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -153,6 +158,20 @@ public class DietRecordActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+        childStepRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int val = Integer.parseInt(dataSnapshot.getValue().toString());
+                Double stepCal = val*0.03;
+                exkcal.setText(""+stepCal.intValue());
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
 

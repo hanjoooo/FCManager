@@ -116,6 +116,24 @@
             android:inputType="number" />
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="당일운동량(kcal)" />
+
+        <EditText
+            android:id="@+id/excal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:inputType="number" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

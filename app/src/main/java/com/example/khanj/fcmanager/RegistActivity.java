@@ -60,6 +60,7 @@ public class RegistActivity extends BaseActivity {
     private DatabaseReference childPWeightRef;
     private DatabaseReference childMWeightRef;
     private DatabaseReference childHeightRef;
+    private DatabaseReference childStepRef;
 
 
 
@@ -257,6 +258,7 @@ public class RegistActivity extends BaseActivity {
                             childHeightRef.setValue(edHeight.getText().toString());
                             childPWeightRef.setValue(edPWeight.getText().toString());
                             childMWeightRef.setValue(edMWeight.getText().toString());
+                            childStepRef.setValue(0);
                             signOut();
                             finish();
                         }
@@ -302,6 +304,7 @@ public class RegistActivity extends BaseActivity {
             childHeightRef=mchildRef.child("height");
             childPWeightRef=mchildRef.child("Pweight");
             childMWeightRef=mchildRef.child("Mweight");
+            childStepRef = mchildRef.child("curStep");
 
         } else {
 

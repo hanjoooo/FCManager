@@ -11,10 +11,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature android:name="android.hardware.Camera" />
     <uses-feature android:name="android.hardware.Camera.autofocus" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -53,6 +56,15 @@
         <activity android:name=".MyPage.BmrCrawlingActivity" />
         <activity android:name=".MyPage.FoodCalorieCrawlingActivity" />
         <activity android:name=".HomePage.CameraActivity" />
+
+        <service
+            android:name=".Service.StepCheckService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+        <service
+            android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
+            android:enabled="true" />
 
     </application>
 
