@@ -18,13 +18,16 @@ import android.widget.TextView;
 import com.example.khanj.fcmanager.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class StepCheckService extends Service implements SensorEventListener{
 
-    public int count = 0;
+    public int count = StepValue.Step;
     private long lastTime;
     private float speed;
     private float lastX;
@@ -86,6 +89,17 @@ public class StepCheckService extends Service implements SensorEventListener{
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mchildRef = mConditionRef.child(currentUser.getUid());
         stepRef = mchildRef.child("curStep");
+        stepRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                count = Integer.parseInt(dataSnapshot.getValue().toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         return START_STICKY;
     } // end of onStartCommand
 

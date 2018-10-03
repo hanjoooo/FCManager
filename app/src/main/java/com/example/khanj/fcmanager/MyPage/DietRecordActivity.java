@@ -96,6 +96,7 @@ public class DietRecordActivity extends AppCompatActivity {
                 DietRecord dietRecord = new DietRecord(today,pWeight,mWeight,mCalorie,pCalorie,BMR.intValue(),excal);
                 childIntakeRef = IntakeRef.child(dietRecord.getDate());
                 childIntakeRef.setValue(dietRecord);
+                childStepRef.setValue(0);
                 Toast.makeText(DietRecordActivity.this, "일지 등록 완료!!", Toast.LENGTH_SHORT).show();
                 finish();
             }
