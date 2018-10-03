@@ -71,7 +71,10 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     static int REQUEST_PHOTO_ALBUM=2;
 
     ImageView iv;
-    TextView txcLeft;
+    private TextView txmCal;
+    private TextView txpCal;
+    private TextView txexCal;
+    private TextView txwGain;
 
 
     private TextView txstep;
@@ -107,8 +110,12 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
         View v = inflater.inflate(R.layout.fragment_home, container, false);
         mRealm = Realm.getDefaultInstance();
         mAuth = FirebaseAuth.getInstance();
-        txcLeft = (TextView)v.findViewById(R.id.leftcal);
+        txmCal = (TextView)v.findViewById(R.id.mkcal);
+        txpCal = (TextView)v.findViewById(R.id.pkcal);
+        txexCal =(TextView)v.findViewById(R.id.exkcal);
         txstep = (TextView) v.findViewById(R.id.txstep);
+        txwGain = (TextView) v.findViewById(R.id.weightgain);
+
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
         iv=(ImageView) v.findViewById(R.id.imgView);
 
@@ -191,9 +198,12 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
                 if(dataSnapshot.exists()){
                     DietRecord dietRecord = dataSnapshot.getValue(DietRecord.class);
                     excal = dietRecord.getExCal();
-                    txcLeft.setText("오늘 남은 칼로리  :  "+dietRecord.getmCal()+"  -  " +dietRecord.getpCal()+"  -  "+dietRecord.getExCal()
-                            +"  =  "+(dietRecord.getmCal()-dietRecord.getpCal()-dietRecord.getExCal())+" kcal");
-                    txcLeft.setSelected(true);
+                    txpCal.setText(dietRecord.getpCal()+" kcal");
+                    txmCal.setText(dietRecord.getmCal()+" kcal");
+                    txexCal.setText(dietRecord.getExCal()+" kcal");
+                    Double weightGain = ((dietRecord.getpCal()-dietRecord.getmCal()-dietRecord.getExCal())/Double.valueOf(dietRecord.getBmr()));
+                    weightGain = Double.parseDouble(String.format("%.4f",weightGain));
+                    txwGain.setText(weightGain+" kg");
                 }
 
             }
@@ -207,7 +217,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    txstep.setText("오늘의 걸음 수  :  "+dataSnapshot.getValue());
+                    txstep.setText("걸음 수  :  "+dataSnapshot.getValue());
                 }
             }
 
@@ -238,6 +248,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     }
     public void anim(){
         if(isFabOpen){
+            fab.setImageResource(R.drawable.camerapressed);
             txfab1.setVisibility(View.GONE);
             txfab2.setVisibility(View.GONE);
             fab1.startAnimation(fab_close);
@@ -246,6 +257,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
             fab2.setClickable(false);
             isFabOpen=false;
         }else{
+            fab.setImageResource(R.drawable.camera_remove);
             txfab1.setVisibility(View.VISIBLE);
             txfab2.setVisibility(View.VISIBLE);
             fab1.startAnimation(fab_open);

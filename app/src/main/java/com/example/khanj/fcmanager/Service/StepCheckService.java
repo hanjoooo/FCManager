@@ -24,7 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class StepCheckService extends Service implements SensorEventListener{
 
-    public int count = StepValue.Step;
+    public int count = 0;
     private long lastTime;
     private float speed;
     private float lastX;
