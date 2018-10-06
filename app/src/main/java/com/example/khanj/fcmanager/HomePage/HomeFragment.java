@@ -1,8 +1,10 @@
 package com.example.khanj.fcmanager.HomePage;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,7 +13,13 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,9 +39,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.Model.DietRecord;
+import com.example.khanj.fcmanager.Model.FoodCalroie;
 import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.Service.StepCheckService;
 
+import com.example.khanj.fcmanager.adapter.FoodListAdapter;
+import com.github.mikephil.charting.data.PieData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,9 +52,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import io.realm.Realm;
@@ -65,10 +82,16 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     private DatabaseReference stepRef;
 
 
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
+    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
     //사진으로 전송시 되돌려 받을 번호
     static int REQUEST_PICTURE=1;
     //앨범으로 전송시 돌려받을 번호
     static int REQUEST_PHOTO_ALBUM=2;
+    //바코드 스캔시 돌려받을 번호
+    static int REQUEST_BARCODE=3;
 
     ImageView iv;
     private TextView txmCal;
@@ -86,9 +109,13 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     private boolean isBind;
 
     private Animation fab_open,fab_close;
-    private TextView txfab1,txfab2;
+    private TextView txfab1,txfab2,txfab3;
     private Boolean isFabOpen=false;
-    private FloatingActionButton fab,fab1,fab2;
+    private FloatingActionButton fab,fab1,fab2,fab3;
+
+    private RecyclerView recyclerView;
+    private ArrayList<FoodCalroie> mItems = new ArrayList<>();
+    private FoodListAdapter adapter;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -124,16 +151,19 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
         fab =(FloatingActionButton)v.findViewById(R.id.camerabutton);
         fab1 = (FloatingActionButton)v.findViewById(R.id.fab1);
         fab2 = (FloatingActionButton)v.findViewById(R.id.fab2);
+        fab3 = (FloatingActionButton)v.findViewById(R.id.fab3);
         txfab1 =(TextView)v.findViewById(R.id.txfab1);
         txfab2=(TextView)v.findViewById(R.id.txfab2);
+        txfab3=(TextView)v.findViewById(R.id.txfab3);
         txfab1.setVisibility(View.GONE);
         txfab2.setVisibility(View.GONE);
-
+        txfab3.setVisibility(View.GONE);
         //가져올 사진의 이름을 정한다.
         //v.findViewById(R.id.getCustom).setOnClickListener(this);
         v.findViewById(R.id.camerabutton).setOnClickListener(this);
         v.findViewById(R.id.fab1).setOnClickListener(this);
         v.findViewById(R.id.fab2).setOnClickListener(this);
+        v.findViewById(R.id.fab3).setOnClickListener(this);
 
         getActivity().getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.customtitlebar);
 
@@ -174,6 +204,61 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
                 return false;
             }
         });
+
+        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+
+            int cameraPermission = ContextCompat.checkSelfPermission(this.getActivity(), Manifest.permission.CAMERA);
+            int writeExternalStoragePermission = ContextCompat.checkSelfPermission(this.getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+
+            if ( cameraPermission == PackageManager.PERMISSION_GRANTED
+                    && writeExternalStoragePermission == PackageManager.PERMISSION_GRANTED) {
+
+
+            }else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this.getActivity(), REQUIRED_PERMISSIONS[0])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this.getActivity(), REQUIRED_PERMISSIONS[1])) {
+
+                    Snackbar.make(v, "이 앱을 실행하려면 카메라와 외부 저장소 접근 권한이 필요합니다.",
+                            Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+
+                            ActivityCompat.requestPermissions( HomeFragment.this.getActivity(), REQUIRED_PERMISSIONS,
+                                    PERMISSIONS_REQUEST_CODE);
+                        }
+                    }).show();
+
+
+                } else {
+                    // 2. 사용자가 퍼미션 거부를 한 적이 없는 경우에는 퍼미션 요청을 바로 합니다.
+                    // 요청 결과는 onRequestPermissionResult에서 수신됩니다.
+                    ActivityCompat.requestPermissions( this.getActivity(), REQUIRED_PERMISSIONS,
+                            PERMISSIONS_REQUEST_CODE);
+                }
+
+            }
+
+        } else {
+
+            final Snackbar snackbar = Snackbar.make(v, "디바이스가 카메라를 지원하지 않습니다.",
+                    Snackbar.LENGTH_INDEFINITE);
+            snackbar.setAction("확인", new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    snackbar.dismiss();
+                }
+            });
+            snackbar.show();
+        }
+
+
+        adapter = new FoodListAdapter(mItems);
+        recyclerView = (RecyclerView)v.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
+
 
         return v;
         //
@@ -245,25 +330,36 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
             startActivityForResult(intent, REQUEST_PICTURE);
             anim();
         }
+        else if(v.getId()==R.id.fab3){
+            Intent intent = new Intent(getActivity(), BarcodeScanActivity.class);
+            startActivityForResult(intent, REQUEST_BARCODE);
+            anim();
+        }
     }
     public void anim(){
         if(isFabOpen){
             fab.setImageResource(R.drawable.camerapressed);
             txfab1.setVisibility(View.GONE);
             txfab2.setVisibility(View.GONE);
+            txfab3.setVisibility(View.GONE);
             fab1.startAnimation(fab_close);
             fab2.startAnimation(fab_close);
+            fab3.startAnimation(fab_close);
             fab1.setClickable(false);
             fab2.setClickable(false);
+            fab3.setClickable(false);
             isFabOpen=false;
         }else{
             fab.setImageResource(R.drawable.camera_remove);
             txfab1.setVisibility(View.VISIBLE);
             txfab2.setVisibility(View.VISIBLE);
+            txfab3.setVisibility(View.VISIBLE);
             fab1.startAnimation(fab_open);
             fab2.startAnimation(fab_open);
+            fab3.startAnimation(fab_open);
             fab1.setClickable(true);
             fab2.setClickable(true);
+            fab3.setClickable(true);
             isFabOpen=true;
         }
     }
@@ -277,10 +373,9 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
         intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent,REQUEST_PHOTO_ALBUM);
     }
-
+    @Override
     public void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-
         if(resultCode==getActivity().RESULT_OK){
             if(requestCode==REQUEST_PICTURE){
                 //사진을 찍은경우 그사진을 로드해온다.
@@ -296,7 +391,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
                 iv.setImageURI(Uri.parse(path));
             }
 
-            if(requestCode==REQUEST_PHOTO_ALBUM){
+            else if(requestCode==REQUEST_PHOTO_ALBUM){
                 //앨범에서 호출한경우 data는 이전인텐트(사진갤러리)에서 선택한 영역을 가져오게된다.
                 String[] projection = { MediaStore.Images.Media.DATA };
                 Cursor cursor = getActivity().getContentResolver().query(data.getData(),projection,null,null,null);
@@ -307,8 +402,22 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
                 cursor.close();
                 iv.setImageURI(data.getData());
             }
+            else if(requestCode==REQUEST_BARCODE) {
+                String barcode = data.getExtras().getString("data");
+                FoodCal(barcode);
+                Toast.makeText(getActivity(), barcode, Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
+    public void FoodCal(String data){
+        if(data.equals("4940756374313")){
+            FoodCalroie foodCalroie = new FoodCalroie("사과",300,30,10,4,2,3);
+            mItems.add(foodCalroie);
         }
 
+        adapter.notifyDataSetChanged();
     }
 
 }

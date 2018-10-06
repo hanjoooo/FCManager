@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.Button;
 
 import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.R;
@@ -18,7 +20,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class ViewRecordActivity extends AppCompatActivity {
+public class ViewRecordActivity extends AppCompatActivity implements View.OnClickListener{
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -29,7 +31,9 @@ public class ViewRecordActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ArrayList<DietRecord> mItems = new ArrayList<>();
+    private ArrayList<DietRecord>tmp = new ArrayList<>();
     private RecordListAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +41,10 @@ public class ViewRecordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_record);
         mAuth = FirebaseAuth.getInstance();
 
+
+        findViewById(R.id.view7).setOnClickListener(this);
+        findViewById(R.id.view30).setOnClickListener(this);
+        findViewById(R.id.view90).setOnClickListener(this);
         //adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,LIST_MENU);
         adapter = new RecordListAdapter(mItems);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -56,10 +64,10 @@ public class ViewRecordActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mItems.clear();
+                tmp.clear();
                 for(DataSnapshot data:dataSnapshot.getChildren()){
                     DietRecord record = data.getValue(DietRecord.class);
-                    mItems.add(record);
-                    adapter.notifyDataSetChanged();
+                    tmp.add(record);
                 }
             }
 
@@ -69,5 +77,55 @@ public class ViewRecordActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        //선택하게끔 하자 !!!!
+        if(v.getId()==R.id.view7){
+            if(tmp.size()>0){
+                int count =7;
+                mItems.clear();
+                for (int i = tmp.size()-1; i >=0; i--) {
+                    if(count==0){
+                        break;
+                    }
+                    mItems.add(tmp.get(i));
+                    count--;
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+
+        }
+        else if(v.getId()==R.id.view30){
+            if(tmp.size()>0){
+                int count =30;
+                mItems.clear();
+                for (int i = tmp.size()-1; i >=0; i--) {
+                    if(count==0){
+                        break;
+                    }
+                    mItems.add(tmp.get(i));
+                    count--;
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+        }
+        else if(v.getId()==R.id.view90){
+            if(tmp.size()>0){
+                int count =30;
+                mItems.clear();
+                for (int i = tmp.size()-1; i >=0; i--) {
+                    if(count==0){
+                        break;
+                    }
+                    mItems.add(tmp.get(i));
+                    count--;
+                }
+                adapter.notifyDataSetChanged();
+            }
+        }
     }
 }

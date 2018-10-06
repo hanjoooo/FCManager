@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="3dp"
             android:background="@color/colorCards"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -37,118 +37,148 @@
                     android:layout_height="wrap_content"
                     android:text="오늘의 일지"
                     android:layout_marginLeft="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginTop="8dp"
                     android:textColor="@color/colorPrimary"
                     android:textSize="20dp" />
 
-                <LinearLayout
+                <android.support.constraint.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <LinearLayout
+                        android:id="@+id/linear1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:orientation="vertical"
-                        android:layout_marginRight="15dp">
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
                         <TextView
-                            android:layout_width="80dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="권장 섭취량"
-                            android:gravity="end"
                             android:layout_marginBottom="5dp"
-                            android:textSize="13dp"
-                            />
+                            android:gravity="end"
+                            android:text="권장 섭취량"
+                            android:textSize="13dp" />
+
                         <TextView
                             android:id="@+id/mkcal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="kcal"
-                            android:textColor="#111"
                             android:layout_gravity="end"
-                            android:layout_marginBottom="5dp"/>
+                            android:layout_marginBottom="5dp"
+                            android:text="kcal"
+                            android:textColor="#111" />
 
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/linear2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="16dp"
                         android:orientation="vertical"
-                        android:layout_marginRight="10dp">
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/linear3"
+                        app:layout_constraintStart_toEndOf="@+id/linear1"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.0">
 
                         <TextView
-                            android:layout_width="80dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="실제 섭취량"
-                            android:gravity="end"
+                            android:layout_gravity="end"
                             android:layout_marginBottom="5dp"
-                            android:textSize="13dp"/>
+                            android:gravity="end"
+                            android:text="실제 섭취량"
+                            android:textSize="13dp" />
 
                         <TextView
                             android:id="@+id/pkcal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="kcal"
-                            android:textColor="#111"
                             android:layout_gravity="end"
-                            android:layout_marginBottom="5dp" />
+                            android:layout_marginBottom="5dp"
+                            android:text="kcal"
+                            android:textColor="#111" />
 
                     </LinearLayout>
+
                     <LinearLayout
+                        android:id="@+id/linear3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
                         android:orientation="vertical"
-                        android:layout_marginRight="40dp">
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/linear4"
+                        app:layout_constraintHorizontal_bias="0.88"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
                         <TextView
-                            android:layout_width="80dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="운동량"
-                            android:gravity="end"
                             android:layout_marginBottom="5dp"
+                            android:gravity="end"
+                            android:text="실제 운동량"
                             android:textSize="13dp" />
+
                         <TextView
                             android:id="@+id/exkcal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="kcal"
-                            android:textColor="#111"
                             android:layout_gravity="end"
-                            android:layout_marginBottom="5dp"/>
-
+                            android:layout_marginBottom="5dp"
+                            android:text="kcal"
+                            android:textColor="#111" />
                     </LinearLayout>
 
 
                     <LinearLayout
+                        android:id="@+id/linear4"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginStart="8dp"
+                        android:orientation="vertical"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.99"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="예측 체중 변화량"
-                            android:gravity="end"
                             android:layout_marginBottom="5dp"
-                            android:textSize="13dp"/>
+                            android:gravity="end"
+                            android:text="예측 체중 변화량"
+                            android:textSize="13dp" />
 
                         <TextView
                             android:id="@+id/weightgain"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:layout_marginBottom="5dp"
                             android:text="kg"
                             android:textColor="@color/powerskyblue"
-                            android:textStyle="bold"
-                            android:layout_gravity="end"
-                            android:layout_marginBottom="5dp"/>
+                            android:textStyle="bold" />
 
                     </LinearLayout>
-                </LinearLayout>
+                </android.support.constraint.ConstraintLayout>
                 <TextView
                     android:id="@+id/txstep"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="5dp"
                     android:layout_gravity="end"
                     android:layout_marginEnd="20dp"
                     android:textColor="#111"
@@ -158,6 +188,14 @@
 
             </LinearLayout>
         </android.support.v7.widget.CardView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘 섭취 음식"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/colorPrimary"
+            android:textSize="20dp"/>
 
         <ScrollView
             android:layout_width="match_parent"
@@ -168,6 +206,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:scrollbarAlwaysDrawVerticalTrack="true"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:paddingBottom="10dp"
+                    android:layout_marginTop="5dp"/>
 
                 <ImageView
                     android:id="@+id/imgView"
@@ -181,12 +230,24 @@
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab3"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/qr_code"
+        app:backgroundTint="#ffffff"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/fab2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab2"
         android:layout_width="65dp"
         android:layout_height="65dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginTop="8dp"
         android:src="@drawable/camera"
         android:visibility="invisible"
@@ -204,7 +265,7 @@
         android:layout_height="65dp"
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginTop="8dp"
         android:src="@drawable/picture"
         android:visibility="invisible"
@@ -222,8 +283,8 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="24dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="28dp"
+        android:layout_marginEnd="20dp"
         android:backgroundTint="#ffffff"
         android:src="@drawable/camerapressed"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -234,10 +295,27 @@
     </android.support.design.widget.FloatingActionButton>
 
     <TextView
+        android:id="@+id/txfab3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="43dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="음식스캔"
+        android:textColor="@color/colorPrimary"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toTopOf="@+id/txfab2"
+        app:layout_constraintEnd_toStartOf="@+id/fab3"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+    <TextView
         android:id="@+id/txfab2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="43dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"

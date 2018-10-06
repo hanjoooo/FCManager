@@ -1,5 +1,6 @@
 package com.example.khanj.fcmanager;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -259,8 +260,9 @@ public class RegistActivity extends BaseActivity {
                             childPWeightRef.setValue(edPWeight.getText().toString());
                             childMWeightRef.setValue(edMWeight.getText().toString());
                             childStepRef.setValue(0);
-                            signOut();
                             finish();
+                            Intent intent = new Intent(RegistActivity.this,MainActivity.class);
+                            startActivity(intent);
                         }
                         hideProgressDialog();
                         // [END_EXCLUDE]
