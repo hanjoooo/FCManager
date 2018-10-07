@@ -1,10 +1,12 @@
 package com.example.khanj.fcmanager.adapter;
 
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.khanj.fcmanager.Model.FoodCalroie;
@@ -48,12 +50,15 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
     @Override
     public void onBindViewHolder(FoodListAdapter.ItemViewHolder holder, final int position){
         holder.txfName.setText(mItems.get(position).getfName());
-        holder.txfCal.setText(""+mItems.get(position).getfCal()+" kcal/100g");
-        holder.txfFat.setText(""+mItems.get(position).getfFat());
-        holder.txfProtein.setText(""+mItems.get(position).getfProtiens());
-        holder.txfCarbs.setText(""+mItems.get(position).getfCarbs());
-        holder.txfFibers.setText(""+mItems.get(position).getfFibers());
-        holder.txfVitamin.setText(""+mItems.get(position).getfVitamin());
+        holder.txfCal.setText(""+mItems.get(position).getfCal()+" kcal");
+        holder.txfFat.setText(""+mItems.get(position).getfFat()+" g");
+        holder.txfProtein.setText(""+mItems.get(position).getfProtiens()+" g");
+        holder.txfCarbs.setText(""+mItems.get(position).getfCarbs()+" g");
+        holder.txfFibers.setText(""+mItems.get(position).getfMinerals()+" g");
+        holder.txfVitamin.setText(""+mItems.get(position).getfVitamin()+" g");
+        if(mItems.get(position).getfName().equals("허니버터칩")){
+            holder.imageView.setImageResource(R.drawable.honeybutter);
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +81,7 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
         private TextView txfFat;
         private TextView txfFibers;
         private TextView txfVitamin;
+        private ImageView imageView;
         public ItemViewHolder(View itemView) {
             super(itemView);
             txfName = (TextView)itemView.findViewById(R.id.fname);
@@ -85,6 +91,7 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
             txfCarbs=(TextView)itemView.findViewById(R.id.fcarb);
             txfFibers=(TextView)itemView.findViewById(R.id.ffib);
             txfVitamin=(TextView)itemView.findViewById(R.id.fvit);
+            imageView=(ImageView)itemView.findViewById(R.id.fimage);
         }
     }
 }

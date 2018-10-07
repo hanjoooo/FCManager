@@ -31,17 +31,17 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.nav_home:
                     replaceViewPager(new HomeFragment());
-                    txt_title.setText("FC MANAGER");
+                    txt_title.setText("MANAGER ");
                     preitem = item;
                     return true;
                 case R.id.nav_cardlist:
                     replaceViewPager(new ManagementFragment());
-                    txt_title.setText("FC MANAGER");
+                    txt_title.setText("MANAGER ");
                     preitem = item;
                     return true;
                 case R.id.nav_mypage:
                     replaceViewPager(new MyPageFragment());
-                    txt_title.setText("FC MANAGER");
+                    txt_title.setText("MANAGER ");
                     preitem = item;
                     return true;
             }
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         Realm.init(this);
         replaceViewPager(new HomeFragment());
-        txt_title.setText("FC MANAGER");
+        txt_title.setText("MANAGER ");
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);

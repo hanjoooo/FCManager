@@ -11,19 +11,19 @@ public class FoodCalroie {
     private int fFat =0;
     private int fProtiens = 0;
     private int fVitamin = 0;
-    private int fFibers = 0;
+    private int fMinerals = 0;
 
     public FoodCalroie(){
 
     }
-    public FoodCalroie(String fname, int fcal, int fcarbs, int ffat,int fprotien,int fvitamin,int ffibers){
+    public FoodCalroie(String fname, int fcal, int fcarbs, int ffat,int fprotien,int fvitamin,int fminerals){
         this.fName=fname;
         this.fCal=fcal;
         this.fCarbs=fcarbs;
         this.fFat=ffat;
         this.fProtiens=fprotien;
         this.fVitamin=fvitamin;
-        this.fFibers=ffibers;
+        this.fMinerals=fminerals;
     }
 
     public String getfName() {
@@ -50,7 +50,7 @@ public class FoodCalroie {
         return fVitamin;
     }
 
-    public int getfFibers() {
-        return fFibers;
+    public int getfMinerals() {
+        return fMinerals;
     }
 }

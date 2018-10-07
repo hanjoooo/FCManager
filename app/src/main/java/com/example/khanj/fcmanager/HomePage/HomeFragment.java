@@ -80,6 +80,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference stepRef;
+    private DatabaseReference mchildpCalRef;
 
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -116,6 +117,8 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     private RecyclerView recyclerView;
     private ArrayList<FoodCalroie> mItems = new ArrayList<>();
     private FoodListAdapter adapter;
+
+    private int todaypCal;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -276,12 +279,14 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
         IntakeRef.child(simpleDateFormat.format(date)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
+                    mchildpCalRef=IntakeRef.child(simpleDateFormat.format(date)).child("pCal");
                     DietRecord dietRecord = dataSnapshot.getValue(DietRecord.class);
+                    todaypCal = dietRecord.getpCal();
                     excal = dietRecord.getExCal();
                     txpCal.setText(dietRecord.getpCal()+" kcal");
                     txmCal.setText(dietRecord.getmCal()+" kcal");
@@ -412,12 +417,22 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     }
 
     public void FoodCal(String data){
-        if(data.equals("4940756374313")){
-            FoodCalroie foodCalroie = new FoodCalroie("사과",300,30,10,4,2,3);
+        if(data.equals("8806002007298")){
+            FoodCalroie foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0);
             mItems.add(foodCalroie);
         }
-
+        else if(data.equals("8801117784508")){
+            FoodCalroie foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",859,19,9,1,0,0);
+            mItems.add(foodCalroie);
+        }
+        else if(data.equals("8801019606540")){
+            FoodCalroie foodCalroie = new FoodCalroie("허니버터칩",350,30,24,4,0,0);
+            todaypCal+=350;
+            mchildpCalRef.setValue(todaypCal);
+            mItems.add(foodCalroie);
+        }
         adapter.notifyDataSetChanged();
+
     }
 
 }

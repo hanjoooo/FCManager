@@ -21,6 +21,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import jnr.ffi.annotations.In;
+
 public class DietRecordActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
@@ -116,6 +118,23 @@ public class DietRecordActivity extends AppCompatActivity {
         childMWeightRef = mchildRef.child("Mweight");
         IntakeRef = mchildRef.child("DietRecord");
         childStepRef = mchildRef.child("curStep");
+        long now = System.currentTimeMillis();
+        final Date date = new Date(now);
+        // 출력될 포맷 설정
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+        IntakeRef.child(simpleDateFormat.format(date)).child("pCal").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    etPkcal.setText(""+dataSnapshot.getValue());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         childAgeRef.addValueEventListener(new ValueEventListener() {
             @Override
