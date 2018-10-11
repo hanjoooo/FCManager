@@ -1,6 +1,7 @@
 package com.example.khanj.fcmanager.MyPage;
 
 import android.content.Intent;
+import android.content.Loader;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.example.khanj.fcmanager.LoginActivity;
 import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
+import com.example.khanj.fcmanager.loading.LoadingFragment;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
@@ -67,7 +69,7 @@ import io.realm.Realm;
  * A simple {@link Fragment} subclass.
  */
 
-public class MyPageFragment extends BaseFragment {
+public class MyPageFragment extends LoadingFragment {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -430,9 +432,7 @@ public class MyPageFragment extends BaseFragment {
 
 
     private void signOut() {
-        showProgressDialog();
         mAuth.signOut();
-        hideProgressDialog();
         getActivity().finish();
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         startActivity(intent);

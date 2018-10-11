@@ -58,6 +58,8 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
         holder.txfVitamin.setText(""+mItems.get(position).getfVitamin()+" g");
         if(mItems.get(position).getfName().equals("허니버터칩")){
             holder.imageView.setImageResource(R.drawable.honeybutter);
+        }else{
+            holder.imageView.setImageResource(R.drawable.ic_launcher_icon);
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

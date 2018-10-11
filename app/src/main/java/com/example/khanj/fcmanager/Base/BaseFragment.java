@@ -5,6 +5,7 @@ package com.example.khanj.fcmanager.Base;
  */
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,30 +14,37 @@ import android.view.View;
 import com.example.khanj.fcmanager.BusProvider;
 import com.example.khanj.fcmanager.R;
 
-public class BaseFragment extends Fragment
-{
-    public ProgressDialog mProgressDialog;
+import org.web3j.protocol.Web3j;
+
+public class BaseFragment extends Fragment {
+    public int count = 0;
+    public final String KEY = "199301130922";
+    public final String contractAddress = "0xb9e35DC2Ce838b4E7A1cDf722d0363bba61E0bf7";
+    public Web3j web3j;
+    public String testnetAddess = "https://ropsten.infura.io/wd7279F18YpzuVLkfZTk";
 
 
-    public void showProgressDialog() {
-        if (mProgressDialog == null) {
-            mProgressDialog = new ProgressDialog(this.getActivity());
-            mProgressDialog.setMessage(getString(R.string.loading));
-            mProgressDialog.setIndeterminate(true);
-        }
-
-        mProgressDialog.show();
-    }
-
-    public void hideProgressDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing()) {
-            mProgressDialog.dismiss();
-        }
-    }
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         BusProvider.getInstance().register(this);
+    }
+
+    public static final String ARGS_INSTANCE = "com.kau.minseop.pointshare";
+
+
+    public FragmentNavigation mFragmentNavigation;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof FragmentNavigation) {
+            mFragmentNavigation = (FragmentNavigation) context;
+        }
+    }
+
+    public interface FragmentNavigation {
+        void pushFragment(Fragment fragment);
     }
 
     @Override

@@ -12,14 +12,20 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.Model.DietRecord;
+import com.example.khanj.fcmanager.Model.FoodCalroie;
 import com.example.khanj.fcmanager.R;
+import com.example.khanj.fcmanager.adapter.FoodListAdapter;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +43,7 @@ import com.squareup.otto.Subscribe;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -47,16 +54,36 @@ import io.realm.Realm;
  */
 
 public class ManagementFragment extends BaseFragment  {
+
     private Realm mRealm;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mConditionRef = mRootRef.child("users");
+    private DatabaseReference mFoodRef=mRootRef.child("food");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
+    private DatabaseReference stepRef;
+    private DatabaseReference mchildpCalRef;
+    private DatabaseReference FoodRecordRef;
 
+    private RecyclerView recyclerView;
 
+    private TextView txmCal;
+    private TextView txpCal;
+    private TextView txexCal;
+    private TextView txwGain;
+    private TextView txdate;
+
+    private int todaypCal;
+    private int excal=0;
+
+    private ArrayList<FoodCalroie> foodItems = new ArrayList<>();
+    private ArrayList<FoodCalroie> foodtempItems = new ArrayList<>();
+    private FoodListAdapter adapter;
     private final OneDayDecorator oneDayDecorator = new OneDayDecorator();
+
+    private LinearLayout linearLayout;
+    private LinearLayout nolistdata;
     Cursor cursor;
     MaterialCalendarView materialCalendarView;
 
@@ -70,8 +97,12 @@ public class ManagementFragment extends BaseFragment  {
         mRealm = Realm.getDefaultInstance();
         materialCalendarView = (MaterialCalendarView)v.findViewById(R.id.calendarView);
 
-        mAuth = FirebaseAuth.getInstance();
+        linearLayout = v.findViewById(R.id.linaerview);
+        nolistdata=v.findViewById(R.id.no_listdata);
+        linearLayout.setVisibility(View.GONE);
+        nolistdata.setVisibility(View.GONE);
 
+        mAuth = FirebaseAuth.getInstance();
         materialCalendarView.state().edit()
                 .setFirstDayOfWeek(Calendar.SUNDAY)
                 .setMinimumDate(CalendarDay.from(2017, 0, 1)) // 달력의 시작
@@ -116,18 +147,39 @@ public class ManagementFragment extends BaseFragment  {
                     if(a.getDate().equals(shot_Day)){
                         record_Ok=1;
                         mItem= a;
+                        break;
                     }
+                    record_Ok=0;
                 }
                 if(record_Ok==1){
-                    MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day,mItem);
-                    dialog.show(getActivity().getFragmentManager(),"dialog");
+                    setCalRecord(shot_Day);
+                    //MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day,mItem);
+                    //dialog.show(getActivity().getFragmentManager(),"dialog");
                 }else{
-                    MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day);
-                    dialog.show(getActivity().getFragmentManager(),"dialog");
+                    foodItems.clear();
+                    adapter.notifyDataSetChanged();
+                    txdate.setText(shot_Day+" - 일지");
+                    nolistdata.setVisibility(View.VISIBLE);
+                    linearLayout.setVisibility(View.GONE);
+                    //MyAlertDialogFragment dialog = new MyAlertDialogFragment().newInstance(shot_Day);
+                    //dialog.show(getActivity().getFragmentManager(),"dialog");
                 }
                 record_Ok=0;
             }
         });
+
+
+        txmCal = (TextView)v.findViewById(R.id.mkcal);
+        txpCal = (TextView)v.findViewById(R.id.pkcal);
+        txexCal =(TextView)v.findViewById(R.id.exkcal);
+        txwGain = (TextView) v.findViewById(R.id.weightgain);
+        txdate = v.findViewById(R.id.date);
+
+        adapter = new FoodListAdapter(foodItems);
+        recyclerView = (RecyclerView)v.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
+
 
 
         return v;
@@ -237,21 +289,33 @@ public class ManagementFragment extends BaseFragment  {
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        mchildRef = mConditionRef.child(currentUser.getUid());
-        IntakeRef = mchildRef.child("DietRecord");
-        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+    public void setCalRecord(String date){
+        nolistdata.setVisibility(View.GONE);
+        txdate.setText(date + " - 일지");
+        todaypCal = mItem.getpCal();
+        excal = mItem.getExCal();
+        txpCal.setText(mItem.getpCal() + " kcal");
+        txmCal.setText(mItem.getmCal() + " kcal");
+        txexCal.setText(mItem.getExCal() + " kcal");
+        Double weightGain = ((mItem.getpCal() - mItem.getmCal() - mItem.getExCal()) / Double.valueOf(mItem.getBmr()));
+        weightGain = Double.parseDouble(String.format("%.4f", weightGain));
+        txwGain.setText(weightGain + " kg");
+        setFoodRecord(date);
+        linearLayout.setVisibility(View.VISIBLE);
+    }
+
+    public void setFoodRecord(String date){
+        FoodRecordRef.child(date).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mItems.clear();
-                for(DataSnapshot data:dataSnapshot.getChildren()){
-                    DietRecord record = data.getValue(DietRecord.class);
-                    mItems.add(record);
+                foodItems.clear();
+                if(dataSnapshot.exists()){
+                    for(DataSnapshot data:dataSnapshot.getChildren()){
+                        FoodCalroie record = data.getValue(FoodCalroie.class);
+                        foodItems.add(record);
+                    }
                 }
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -259,5 +323,50 @@ public class ManagementFragment extends BaseFragment  {
 
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        mchildRef = mConditionRef.child(currentUser.getUid());
+        FoodRecordRef =mFoodRef.child(currentUser.getUid());
+        IntakeRef = mchildRef.child("DietRecord");
+        stepRef = mchildRef.child("curStep");
+        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                long now = System.currentTimeMillis();
+                final Date date = new Date(now);
+                // 출력될 포맷 설정
+                final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+                mItems.clear();
+                txdate.setText(simpleDateFormat.format(date)+" - 일지");
+                for(DataSnapshot data:dataSnapshot.getChildren()){
+                    DietRecord record = data.getValue(DietRecord.class);
+                    mItems.add(record);
+
+                }
+                for(DietRecord x : mItems){
+                    if(x.getDate().equals(simpleDateFormat.format(date))){
+                        mItem= x;
+                        setCalRecord(x.getDate());
+                        nolistdata.setVisibility(View.GONE);
+                        break;
+                    }
+                    else{
+                        nolistdata.setVisibility(View.VISIBLE);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 }

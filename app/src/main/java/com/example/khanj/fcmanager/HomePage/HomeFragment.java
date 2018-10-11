@@ -17,6 +17,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -44,16 +45,16 @@ import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.Service.StepCheckService;
 
 import com.example.khanj.fcmanager.adapter.FoodListAdapter;
+import com.example.khanj.fcmanager.loading.LoadingFragment;
 import com.github.mikephil.charting.data.PieData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,15 +73,20 @@ import static io.realm.internal.SyncObjectServerFacade.getApplicationContext;
  * A simple {@link Fragment} subclass.
  */
 
-public class HomeFragment extends BaseFragment implements View.OnClickListener{
+public class HomeFragment extends LoadingFragment implements View.OnClickListener{
 
     private FirebaseAuth mAuth;
     private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mConditionRef = mRootRef.child("users");
+    private DatabaseReference mFoodRef=mRootRef.child("food");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference stepRef;
     private DatabaseReference mchildpCalRef;
+    private DatabaseReference FoodRecordRef;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private boolean refreshing=false;
+
 
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -103,7 +109,6 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
 
     private TextView txstep;
 
-    private int excal=0;
     private String filepath=null;
     private Realm mRealm;
     private StepCheckService mService;
@@ -119,6 +124,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
     private FoodListAdapter adapter;
 
     private int todaypCal;
+    private int excal=0;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -167,7 +173,6 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
         v.findViewById(R.id.fab1).setOnClickListener(this);
         v.findViewById(R.id.fab2).setOnClickListener(this);
         v.findViewById(R.id.fab3).setOnClickListener(this);
-
         getActivity().getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.customtitlebar);
 
         txstep.setText("오늘의 걸음 수  :  "+0);
@@ -269,17 +274,37 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
 
 
 
+
     @Override
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mchildRef = mConditionRef.child(currentUser.getUid());
+        FoodRecordRef =mFoodRef.child(currentUser.getUid());
         IntakeRef = mchildRef.child("DietRecord");
         stepRef = mchildRef.child("curStep");
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+        FoodRecordRef.child(simpleDateFormat.format(date)).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    mItems.clear();
+                    for(DataSnapshot data:dataSnapshot.getChildren()){
+                        FoodCalroie record = data.getValue(FoodCalroie.class);
+                        mItems.add(record);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         IntakeRef.child(simpleDateFormat.format(date)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -408,31 +433,47 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener{
                 iv.setImageURI(data.getData());
             }
             else if(requestCode==REQUEST_BARCODE) {
+                long now = System.currentTimeMillis();
+                final Date date = new Date(now);
+                // 출력될 포맷 설정
+                final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+                final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("hh시 mm분 ss초");
                 String barcode = data.getExtras().getString("data");
-                FoodCal(barcode);
-                Toast.makeText(getActivity(), barcode, Toast.LENGTH_SHORT).show();
+                FoodCalroie foodCalroie= FoodCal(barcode);
+                if(foodCalroie.getfName().equals("음식이름")){
+                    Toast.makeText(getActivity(), "죄송합니다..등록되지 않은 제품입니다.", Toast.LENGTH_SHORT).show();
+                }else{
+                    todaypCal+=foodCalroie.getfCal();
+                    mchildpCalRef.setValue(todaypCal);
+                    FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(foodCalroie);
+                }
             }
 
         }
     }
 
-    public void FoodCal(String data){
+    public FoodCalroie FoodCal(String data){
+        FoodCalroie foodCalroie;
         if(data.equals("8806002007298")){
-            FoodCalroie foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0);
-            mItems.add(foodCalroie);
+            foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0);
+
         }
         else if(data.equals("8801117784508")){
-            FoodCalroie foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",859,19,9,1,0,0);
-            mItems.add(foodCalroie);
+            foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",859,19,9,1,0,0);
         }
         else if(data.equals("8801019606540")){
-            FoodCalroie foodCalroie = new FoodCalroie("허니버터칩",350,30,24,4,0,0);
-            todaypCal+=350;
-            mchildpCalRef.setValue(todaypCal);
-            mItems.add(foodCalroie);
+            foodCalroie = new FoodCalroie("허니버터칩",350,30,24,4,0,0);
         }
-        adapter.notifyDataSetChanged();
-
+        else if(data.equals("8801019606557")){
+            foodCalroie = new FoodCalroie("허니버터칩",700,60,48,8,0,0);
+        }
+        else if(data.equals("8801045522678")){
+            foodCalroie = new FoodCalroie("진짬뽕",505,77,16,13,1,0);
+        }
+        else{
+            foodCalroie = new FoodCalroie();
+        }
+        return foodCalroie;
     }
 
 }

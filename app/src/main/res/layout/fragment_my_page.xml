@@ -26,9 +26,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="3dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -41,7 +41,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:layout_marginEnd="8dp"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="3dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -68,7 +68,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="이름"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
 
                         <TextView
@@ -76,28 +77,32 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="현재몸무게"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="목표몸무게"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="기초대사량"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="일일권장섭취량"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
 
                     </LinearLayout>
@@ -115,7 +120,8 @@
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="이름"
                             android:textColor="#111"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
                         <TextView
                             android:id="@+id/txpweight"
@@ -124,7 +130,8 @@
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="현재몸무게"
                             android:textColor="#111"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp"/>
 
                         <TextView
                             android:id="@+id/txmweight"
@@ -133,7 +140,8 @@
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="목표몸무게"
                             android:textColor="#111"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp"/>
 
                         <TextView
                             android:id="@+id/txbmr"
@@ -142,7 +150,8 @@
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="기초대사량"
                             android:textColor="#111"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp" />
 
                         <TextView
                             android:id="@+id/txcalorie"
@@ -151,7 +160,8 @@
                             android:layout_marginTop="@dimen/activity_margin_narrow"
                             android:text="일일권장섭취량"
                             android:textColor="#111"
-                            android:textSize="15dp" />
+                            style="@style/TextStyle17_reg"
+                            android:textSize="12dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </android.support.v7.widget.CardView>
@@ -173,6 +183,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="금일 섭취 영양소 비율"
+                        style="@style/TextStyle17_reg"
                         android:textSize="17dp"
                         android:textStyle="bold"
                         android:textColor="@color/colorPrimary"
@@ -228,6 +239,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="내 영양 관리"
+                                style="@style/TextStyle17_reg"
                                 android:textSize="17dp"
                                 android:textStyle="bold"
                                 android:textColor="@color/colorPrimary"
@@ -239,7 +251,8 @@
                                 android:layout_marginLeft="8dp"
                                 android:layout_marginRight="8dp"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent">
+                                android:layout_height="match_parent"
+                             >
                             </ListView>
                             <TextView
                                 android:layout_width="match_parent"
@@ -256,6 +269,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="내 계정 관리"
+                                style="@style/TextStyle17_reg"
                                 android:textSize="17dp"
                                 android:textStyle="bold"
                                 android:textColor="@color/colorPrimary"
@@ -267,7 +281,8 @@
                                 android:layout_marginLeft="8dp"
                                 android:layout_marginRight="8dp"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent">
+                                android:layout_height="match_parent"
+                                >
                             </ListView>
                             <TextView
                                 android:layout_width="match_parent"

@@ -59,6 +59,7 @@ public class DietRecordActivity extends AppCompatActivity {
     private Button btChange;
     private Button btCancle;
 
+    private int exKcal=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +129,39 @@ public class DietRecordActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()){
                     etPkcal.setText(""+dataSnapshot.getValue());
                 }
+                else{
+                    etPkcal.setText("0");
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        IntakeRef.child(simpleDateFormat.format(date)).child("exCal").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    exKcal = Integer.parseInt(dataSnapshot.getValue().toString());
+                }
+
+                childStepRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        int val = Integer.parseInt(dataSnapshot.getValue().toString());
+                        Double stepCal = val*0.03+exKcal;
+                        exkcal.setText(""+stepCal.intValue());
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
 
             @Override
@@ -180,20 +214,7 @@ public class DietRecordActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
-        childStepRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                int val = Integer.parseInt(dataSnapshot.getValue().toString());
-                Double stepCal = val*0.03;
-                exkcal.setText(""+stepCal.intValue());
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
 
         childGenderRef.addValueEventListener(new ValueEventListener() {
             @Override
