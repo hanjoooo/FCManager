@@ -1,7 +1,5 @@
 package com.example.khanj.fcmanager.adapter;
 
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,8 +52,8 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
         holder.txfFat.setText(""+mItems.get(position).getfFat()+" g");
         holder.txfProtein.setText(""+mItems.get(position).getfProtiens()+" g");
         holder.txfCarbs.setText(""+mItems.get(position).getfCarbs()+" g");
-        holder.txfFibers.setText(""+mItems.get(position).getfMinerals()+" g");
-        holder.txfVitamin.setText(""+mItems.get(position).getfVitamin()+" g");
+        holder.txNa.setText(""+mItems.get(position).getfNa()+" mg");
+        holder.txWeight.setText(""+mItems.get(position).getfWeight()+" g");
         if(mItems.get(position).getfName().equals("허니버터칩")){
             holder.imageView.setImageResource(R.drawable.honeybutter);
         }else{
@@ -81,8 +79,8 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
         private TextView txfProtein;
         private TextView txfCarbs;
         private TextView txfFat;
-        private TextView txfFibers;
-        private TextView txfVitamin;
+        private TextView txNa;
+        private TextView txWeight;
         private ImageView imageView;
         public ItemViewHolder(View itemView) {
             super(itemView);
@@ -91,8 +89,8 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
             txfFat=(TextView)itemView.findViewById(R.id.ffat);
             txfProtein=(TextView)itemView.findViewById(R.id.fpro);
             txfCarbs=(TextView)itemView.findViewById(R.id.fcarb);
-            txfFibers=(TextView)itemView.findViewById(R.id.ffib);
-            txfVitamin=(TextView)itemView.findViewById(R.id.fvit);
+            txNa=(TextView)itemView.findViewById(R.id.ffib);
+            txWeight=(TextView)itemView.findViewById(R.id.fweight);
             imageView=(ImageView)itemView.findViewById(R.id.fimage);
         }
     }
