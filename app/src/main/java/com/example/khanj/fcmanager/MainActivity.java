@@ -10,10 +10,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.signature.StringSignature;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.HomePage.HomeFragment;
 import com.example.khanj.fcmanager.MyPage.MyPageFragment;
@@ -23,6 +26,9 @@ import com.example.khanj.fcmanager.handler.BackPressHandler;
 import com.example.khanj.fcmanager.ManagePage.ManagementFragment;
 import com.example.khanj.fcmanager.utils.FragmentHistory;
 import com.example.khanj.fcmanager.views.FragNavController;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +43,10 @@ public class MainActivity extends AppCompatActivity implements BaseFragment.Frag
     String[] TABS;
     private Toolbar toolbar;
     private BackPressHandler backPressHandler;
-
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference storageRef = storage.getReference();
+    private StorageReference schildRef;
+    private StorageReference sprofileRef;
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
@@ -234,6 +243,9 @@ public class MainActivity extends AppCompatActivity implements BaseFragment.Frag
         }
     }
 
-
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+       // sprofileRef = schildRef.child("profileImg");
+    }
 }

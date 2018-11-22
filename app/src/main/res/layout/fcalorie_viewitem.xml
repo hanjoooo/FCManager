@@ -46,7 +46,19 @@
                 android:textColor="#111"
                 style="@style/TextStyle17_reg"
                 android:textSize="12dp"
-                android:text="음식 칼로리"/>
+                android:text="음식 칼로리"
+                android:layout_marginRight="10dp"/>
+
+
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:id="@+id/fweight"
+                   style="@style/TextStyle17_reg"
+                   android:textSize="12dp"
+                   android:textColor="#111"
+                   android:text="200g"
+                   android:layout_marginLeft="10dp"/>
          </LinearLayout>
          <LinearLayout
              android:layout_width="match_parent"
@@ -123,7 +135,7 @@
                    android:layout_height="wrap_content"
                    android:textSize="11dp"
                    style="@style/TextStyle17_reg"
-                   android:text="무기질"/>
+                   android:text="나트륨"/>
                <TextView
                    android:layout_width="wrap_content"
                    android:layout_height="wrap_content"
@@ -132,26 +144,7 @@
                    android:textSize="10dp"
                    android:text="200g"/>
             </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end"
-                android:layout_marginLeft="15dp">
-               <TextView
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:textSize="11dp"
-                   style="@style/TextStyle17_reg"
-                   android:text="비타민"/>
-               <TextView
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:id="@+id/fvit"
-                   style="@style/TextStyle17_reg"
-                   android:textSize="10dp"
-                   android:text="200g"/>
-            </LinearLayout>
+
          </LinearLayout>
       </LinearLayout>
    </LinearLayout>

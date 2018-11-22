@@ -2,6 +2,7 @@ package com.example.khanj.fcmanager.HomePage;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,6 +29,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +43,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.example.khanj.fcmanager.Base.BaseFragment;
+import com.example.khanj.fcmanager.Dialog.WeightDialog;
+import com.example.khanj.fcmanager.Helper.WeightDialogListener;
 import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.Model.FoodCalroie;
 import com.example.khanj.fcmanager.R;
@@ -79,6 +85,8 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mConditionRef = mRootRef.child("users");
     private DatabaseReference mFoodRef=mRootRef.child("food");
+    private DatabaseReference mFoodexistRef = mRootRef.child("foodexist");
+    private DatabaseReference mFoodlistRef = mRootRef.child("foodlist");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference stepRef;
@@ -125,6 +133,13 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
 
     private int todaypCal;
     private int excal=0;
+
+
+    ArrayList<String> a= new ArrayList<>();
+    ArrayList<String> foodCandinate= new ArrayList<>();
+
+    private int foodLayer=0;
+
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -192,7 +207,111 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         s3.setRegion(Region.getRegion(Regions.AP_NORTHEAST_2));
         s3.setEndpoint("s3.ap-northeast-2.amazonaws.com");
 
+        adapter = new FoodListAdapter(mItems);
+        recyclerView = (RecyclerView)v.findViewById(R.id.recyclerView);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
 
+
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
+                        HomeFragment.this.getActivity());
+                alertBuilder.setIcon(R.drawable.ic_launcher_icon);
+                alertBuilder.setTitle(" < 음식을 선택해 주세요 >");
+                final ArrayAdapter<String> layer1adapter = new ArrayAdapter<String>(
+                        HomeFragment.this.getActivity(),
+                        android.R.layout.select_dialog_singlechoice);
+                a.clear();
+                foodCandinate.clear();
+                a.add("Apple");
+                a.add("grape");
+                a.add("Banana");
+                a.add("Cherry");
+                for(int i=0;i<a.size();i++){
+                    final int finalI = i;
+                    mFoodexistRef.child(a.get(i)).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if(dataSnapshot.exists()){
+                                if(dataSnapshot.getValue().toString().equals("1")){
+                                    foodLayer = 1;
+                                    layer1adapter.add(a.get(finalI));
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+                if(foodLayer==1){
+                    final double[] weightpersent = {1};
+
+                    // 버튼 생성
+                    alertBuilder.setNegativeButton("취소",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                    // Adapter 셋팅
+                    alertBuilder.setAdapter(layer1adapter,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    // AlertDialog 안에 있는 AlertDialog
+                                    String strName = layer1adapter.getItem(id);
+                                    mFoodlistRef.child(strName).addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            long now = System.currentTimeMillis();
+                                            final Date date = new Date(now);
+                                            // 출력될 포맷 설정
+                                            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+                                            final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
+                                            final FoodCalroie record = dataSnapshot.getValue(FoodCalroie.class);
+                                            final int firstweight  = record.getfWeight();
+
+                                            WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),record.getfName(),record.getfWeight());
+                                            weightDialog.setDialogListener(new WeightDialogListener() {
+                                                @Override
+                                                public void onPositiveClicked(int Weight) {
+                                                    int lastweight = Weight;
+                                                    weightpersent[0] = (double)lastweight/(double)firstweight;
+                                                    FoodCalroie newrecord = new FoodCalroie(record.getfName(),(int)((double)record.getfCal()*(weightpersent[0])),
+                                                            Math.round(record.getfCarbs()*weightpersent[0] * 100d)/100d,Math.round(record.getfFat()*weightpersent[0] * 100d)/100d,
+                                                            Math.round(record.getfProtiens()*weightpersent[0]*100d)/100d,Math.round(record.getfNa()*weightpersent[0]*100d)/100d,
+                                                            (int)((double)record.getfWeight()*weightpersent[0]));
+                                                    mItems.add(newrecord);
+                                                    adapter.notifyDataSetChanged();
+
+                                                    todaypCal+=(newrecord.getfCal());
+                                                    mchildpCalRef.setValue(todaypCal);
+                                                    FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
+                                                }
+                                            });
+                                            weightDialog.show();
+
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+
+                                }
+                            });
+                    alertBuilder.show();
+                }
+
+            }
+        });
 
         iv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -262,10 +381,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         }
 
 
-        adapter = new FoodListAdapter(mItems);
-        recyclerView = (RecyclerView)v.findViewById(R.id.recyclerView);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
 
 
         return v;
@@ -437,7 +552,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 final Date date = new Date(now);
                 // 출력될 포맷 설정
                 final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
-                final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("hh시 mm분 ss초");
+                final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
                 String barcode = data.getExtras().getString("data");
                 FoodCalroie foodCalroie= FoodCal(barcode);
                 if(foodCalroie.getfName().equals("음식이름")){
@@ -460,6 +575,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         }
         else if(data.equals("8801117784508")){
             foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",859,19,9,1,0,0);
+        }
+        else if(data.equals("8801117784409")){
+            foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",408,50.5,24,2.6,560,80);
         }
         else if(data.equals("8801019606540")){
             foodCalroie = new FoodCalroie("허니버터칩",350,30,24,4,0,0);

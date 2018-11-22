@@ -7,23 +7,23 @@ package com.example.khanj.fcmanager.Model;
 public class FoodCalroie {
     private String fName = "음식이름";
     private int fCal=0;
-    private int fCarbs=0;
-    private int fFat =0;
-    private int fProtiens = 0;
-    private int fVitamin = 0;
-    private int fMinerals = 0;
+    private double fCarbs=0;
+    private double fFat =0;
+    private double fProtiens = 0;
+    private double fNa = 0;
+    private int fWeight= 0;
 
     public FoodCalroie(){
 
     }
-    public FoodCalroie(String fname, int fcal, int fcarbs, int ffat,int fprotien,int fvitamin,int fminerals){
+    public FoodCalroie(String fname, int fcal, double fcarbs, double ffat,double fprotien,double fNa,int fWeight){
         this.fName=fname;
         this.fCal=fcal;
         this.fCarbs=fcarbs;
         this.fFat=ffat;
         this.fProtiens=fprotien;
-        this.fVitamin=fvitamin;
-        this.fMinerals=fminerals;
+        this.fNa=fNa;
+        this.fWeight=fWeight;
     }
 
     public String getfName() {
@@ -34,23 +34,23 @@ public class FoodCalroie {
         return fCal;
     }
 
-    public int getfFat() {
+    public double getfFat() {
         return fFat;
     }
 
-    public int getfCarbs() {
+    public double getfCarbs() {
         return fCarbs;
     }
 
-    public int getfProtiens() {
+    public double getfProtiens() {
         return fProtiens;
     }
 
-    public int getfVitamin() {
-        return fVitamin;
+    public double getfNa() {
+        return fNa;
     }
 
-    public int getfMinerals() {
-        return fMinerals;
+    public int getfWeight() {
+        return fWeight;
     }
 }

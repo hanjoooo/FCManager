@@ -273,12 +273,11 @@ public class MyPageFragment extends LoadingFragment {
 
                     ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
 
-                    yValues.add(new PieEntry(1,"단백질"));
-                    yValues.add(new PieEntry(1,"탄수화물"));
+                    yValues.add(new PieEntry(2,"단백질"));
+                    yValues.add(new PieEntry(3,"탄수화물"));
                     yValues.add(new PieEntry(1,"지방"));
-                    yValues.add(new PieEntry(1,"비타민"));
-                    yValues.add(new PieEntry(1,"무기질"));
-
+                    yValues.add(new PieEntry(1,"나트륨"));
+                    yValues.add(new PieEntry(1,"기타"));
                     Description descriptions = new Description();
                     descriptions.setText(""); //라벨
                     descriptions.setTextSize(15);
@@ -293,7 +292,7 @@ public class MyPageFragment extends LoadingFragment {
 
                     PieData data = new PieData((dataSet));
                     data.setValueTextSize(10f);
-                    data.setValueTextColor(Color.YELLOW);
+                    data.setValueTextColor(Color.YELLOW);;
 
                     pieChart.setData(data);
 
@@ -308,12 +307,15 @@ public class MyPageFragment extends LoadingFragment {
 
             }
         });
+
         try{
             Glide.with(MyPageFragment.this.getActivity()).using(new FirebaseImageLoader())
                     .load(sprofileRef).signature(new StringSignature(String.valueOf(System.currentTimeMillis()))).into(profileImg);
         }catch (Exception e) {
             System.out.println(e);
         }
+
+
         childNameRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

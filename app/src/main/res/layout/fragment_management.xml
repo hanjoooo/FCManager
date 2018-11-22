@@ -95,6 +95,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="5dp"
                             android:gravity="end"
+                            android:layout_gravity="end"
                             android:text="권장 섭취"
                             android:textSize="12dp" />
 
@@ -168,6 +169,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="5dp"
                             android:gravity="end"
+                            android:layout_gravity="end"
                             android:text="운동량"
                             android:textSize="12dp" />
 
@@ -203,6 +205,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="5dp"
                             android:gravity="end"
+                            android:layout_gravity="end"
                             android:text="예측 체중 변화"
                             android:textSize="12dp" />
 

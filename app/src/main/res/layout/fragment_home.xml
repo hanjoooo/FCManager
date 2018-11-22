@@ -62,6 +62,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="5dp"
                                 android:gravity="end"
+                                android:layout_gravity="end"
                                 android:text="권장 섭취량"
                                 style="@style/TextStyle_list"
                                 android:textSize="12dp" />
@@ -132,6 +133,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="5dp"
+                                android:layout_gravity="end"
                                 android:gravity="end"
                                 android:text="실제 운동량"
                                 style="@style/TextStyle_list"
@@ -167,6 +169,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginBottom="5dp"
+                                android:layout_gravity="end"
                                 android:gravity="end"
                                 android:text="예측 체중 변화량"
                                 style="@style/TextStyle_list"
