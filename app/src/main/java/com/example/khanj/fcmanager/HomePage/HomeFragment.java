@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -69,6 +70,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.Realm;
 
@@ -87,6 +90,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private DatabaseReference mFoodRef=mRootRef.child("food");
     private DatabaseReference mFoodexistRef = mRootRef.child("foodexist");
     private DatabaseReference mFoodlistRef = mRootRef.child("foodlist");
+    private DatabaseReference mFoodlist3Ref = mRootRef.child("foodlist3");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference stepRef;
@@ -137,8 +141,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
 
     ArrayList<String> a= new ArrayList<>();
     ArrayList<String> foodCandinate= new ArrayList<>();
-
-    private int foodLayer=0;
+    Map<String,Integer> foodlayermap = new HashMap<String, Integer>();
 
 
     ServiceConnection soonn = new ServiceConnection() {
@@ -216,6 +219,11 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                long now = System.currentTimeMillis();
+                final Date date = new Date(now);
+                // 출력될 포맷 설정
+                final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+                final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
                 final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
                         HomeFragment.this.getActivity());
                 alertBuilder.setIcon(R.drawable.ic_launcher_icon);
@@ -225,20 +233,20 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         android.R.layout.select_dialog_singlechoice);
                 a.clear();
                 foodCandinate.clear();
+                foodlayermap.clear();
                 a.add("Apple");
                 a.add("grape");
                 a.add("Banana");
                 a.add("Cherry");
-                for(int i=0;i<a.size();i++){
+                a.add("Burger");
+                for(int i=0;i<a.size();i++) {
                     final int finalI = i;
                     mFoodexistRef.child(a.get(i)).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            if(dataSnapshot.exists()){
-                                if(dataSnapshot.getValue().toString().equals("1")){
-                                    foodLayer = 1;
-                                    layer1adapter.add(a.get(finalI));
-                                }
+                            if (dataSnapshot.exists()) {
+                                layer1adapter.add(a.get(finalI));
+                                foodlayermap.put(a.get(finalI), Integer.parseInt(dataSnapshot.getValue().toString()));
                             }
                         }
 
@@ -248,32 +256,30 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         }
                     });
                 }
-                if(foodLayer==1){
-                    final double[] weightpersent = {1};
+                final double[] weightpersent = {1};
 
-                    // 버튼 생성
-                    alertBuilder.setNegativeButton("취소",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                    dialog.dismiss();
-                                }
-                            });
+                // 버튼 생성
+                alertBuilder.setNegativeButton("취소",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int which) {
+                                dialog.dismiss();
+                            }
+                        });
 
-                    // Adapter 셋팅
-                    alertBuilder.setAdapter(layer1adapter,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    // AlertDialog 안에 있는 AlertDialog
-                                    String strName = layer1adapter.getItem(id);
+                // Adapter 셋팅
+                alertBuilder.setAdapter(layer1adapter,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // AlertDialog 안에 있는 AlertDialog
+                                final String strName = layer1adapter.getItem(id);
+
+                                //음식데이터가 layer1일 경우
+                                if(foodlayermap.get(strName).equals(1)){
                                     mFoodlistRef.child(strName).addValueEventListener(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
-                                            long now = System.currentTimeMillis();
-                                            final Date date = new Date(now);
-                                            // 출력될 포맷 설정
-                                            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
-                                            final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
+
                                             final FoodCalroie record = dataSnapshot.getValue(FoodCalroie.class);
                                             final int firstweight  = record.getfWeight();
 
@@ -296,7 +302,105 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                 }
                                             });
                                             weightDialog.show();
+                                        }
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
 
+                                        }
+                                    });
+                                }
+                                //음식데이터가 layer3일 경우
+                                else if(foodlayermap.get(strName).equals(3)){
+                                    mFoodlist3Ref.child(strName).addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.exists()){
+                                                final AlertDialog.Builder alertlayer3Builder = new AlertDialog.Builder(
+                                                        HomeFragment.this.getActivity());
+                                                alertlayer3Builder.setIcon(R.drawable.ic_launcher_icon);
+                                                alertlayer3Builder.setTitle(strName);
+                                                final ArrayAdapter<String> layer3adapter = new ArrayAdapter<String>(
+                                                        HomeFragment.this.getActivity(),
+                                                        android.R.layout.select_dialog_singlechoice);
+                                                for(DataSnapshot data:dataSnapshot.getChildren()){
+                                                    layer3adapter.add(data.getValue().toString());
+                                                }
+                                                alertlayer3Builder.setAdapter(layer3adapter, new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        //회사 선택 시 일어나는 코드
+                                                        final String strName = layer3adapter.getItem(which);
+                                                        mFoodlistRef.child(strName).addValueEventListener(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                                if (dataSnapshot.exists()) {
+                                                                    FoodCalroie record;
+                                                                    final AlertDialog.Builder alertlayer2Builder = new AlertDialog.Builder(
+                                                                            HomeFragment.this.getActivity());
+                                                                    alertlayer2Builder.setIcon(R.drawable.ic_launcher_icon);
+                                                                    alertlayer2Builder.setTitle(strName);
+                                                                    final ArrayAdapter<String> layer2adapter = new ArrayAdapter<String>(
+                                                                            HomeFragment.this.getActivity(),
+                                                                            android.R.layout.select_dialog_singlechoice);
+                                                                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                                                                        record = data.getValue(FoodCalroie.class);
+                                                                        layer2adapter.add(record.getfName());
+                                                                    }
+
+                                                                    alertlayer2Builder.setAdapter(layer2adapter, new DialogInterface.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(DialogInterface dialog, int which) {
+                                                                            //layer2선택시
+                                                                            final String foodName = layer2adapter.getItem(which);
+
+                                                                            mFoodlistRef.child(strName).child(foodName).addValueEventListener(new ValueEventListener() {
+                                                                                @Override
+                                                                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                                                                    final FoodCalroie layer3data = dataSnapshot.getValue(FoodCalroie.class);
+                                                                                    final int firstweight  = layer3data.getfWeight();
+
+                                                                                    WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),layer3data.getfName(),layer3data.getfWeight());
+                                                                                    weightDialog.setDialogListener(new WeightDialogListener() {
+                                                                                        @Override
+                                                                                        public void onPositiveClicked(int Weight) {
+                                                                                            int lastweight = Weight;
+                                                                                            weightpersent[0] = (double)lastweight/(double)firstweight;
+                                                                                            FoodCalroie newrecord = new FoodCalroie(layer3data.getfName(),(int)((double)layer3data.getfCal()*(weightpersent[0])),
+                                                                                                    Math.round(layer3data.getfCarbs()*weightpersent[0] * 100d)/100d,Math.round(layer3data.getfFat()*weightpersent[0] * 100d)/100d,
+                                                                                                    Math.round(layer3data.getfProtiens()*weightpersent[0]*100d)/100d,Math.round(layer3data.getfNa()*weightpersent[0]*100d)/100d,
+                                                                                                    (int)((double)layer3data.getfWeight()*weightpersent[0]));
+                                                                                            mItems.add(newrecord);
+                                                                                            adapter.notifyDataSetChanged();
+
+                                                                                            todaypCal+=(newrecord.getfCal());
+                                                                                            mchildpCalRef.setValue(todaypCal);
+                                                                                            FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
+                                                                                        }
+                                                                                    });
+                                                                                    weightDialog.show();
+                                                                                }
+
+                                                                                @Override
+                                                                                public void onCancelled(DatabaseError databaseError) {
+
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                                    alertlayer2Builder.show();
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(DatabaseError databaseError) {
+
+                                                            }
+                                                        });
+                                                    }
+                                                });
+
+                                                alertlayer3Builder.show();
+                                            }
                                         }
 
                                         @Override
@@ -306,10 +410,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     });
 
                                 }
-                            });
-                    alertBuilder.show();
-                }
-
+                            }
+                        });
+                alertBuilder.show();
             }
         });
 
