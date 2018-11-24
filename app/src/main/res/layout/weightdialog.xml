@@ -40,6 +40,7 @@
                 android:layout_width="95dp"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:gravity="end"
                 android:textColorHint="#42000000" />
         </android.support.design.widget.TextInputLayout>
         <TextView

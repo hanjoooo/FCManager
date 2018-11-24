@@ -126,12 +126,10 @@ public class DietRecordActivity extends AppCompatActivity {
         IntakeRef.child(simpleDateFormat.format(date)).child("pCal").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
+                if (dataSnapshot.exists())
                     etPkcal.setText(""+dataSnapshot.getValue());
-                }
-                else{
+                else
                     etPkcal.setText("0");
-                }
 
             }
 
