@@ -1,5 +1,6 @@
 package com.example.khanj.fcmanager.adapter;
 
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,10 +55,12 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
         holder.txfCarbs.setText(""+mItems.get(position).getfCarbs()+" g");
         holder.txNa.setText(""+mItems.get(position).getfNa()+" mg");
         holder.txWeight.setText(""+mItems.get(position).getfWeight()+" g");
-        if(mItems.get(position).getfName().equals("허니버터칩")){
-            holder.imageView.setImageResource(R.drawable.honeybutter);
-        }else{
+
+        if(mItems.get(position).getImguri().equals(" ")){
             holder.imageView.setImageResource(R.drawable.ic_launcher_icon);
+        }else{
+            holder.imageView.setImageURI(Uri.parse(mItems.get(position).getImguri()));
+
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

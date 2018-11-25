@@ -2,15 +2,20 @@ package com.example.khanj.fcmanager.HomePage;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +35,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -43,7 +49,6 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.Dialog.WeightDialog;
 import com.example.khanj.fcmanager.Helper.WeightDialogListener;
 import com.example.khanj.fcmanager.Model.DietRecord;
@@ -53,10 +58,8 @@ import com.example.khanj.fcmanager.Service.StepCheckService;
 
 import com.example.khanj.fcmanager.adapter.FoodListAdapter;
 import com.example.khanj.fcmanager.loading.LoadingFragment;
-import com.github.mikephil.charting.data.PieData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -67,12 +70,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import io.realm.Realm;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -104,8 +108,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private DatabaseReference FoodRecordRef;
     private SwipeRefreshLayout swipeRefreshLayout;
     private boolean refreshing=false;
-
-
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.CAMERA,
@@ -157,6 +159,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     ArrayList<String> foodCandinate= new ArrayList<>();
     Map<String,Integer> foodlayermap = new HashMap<String, Integer>();
 
+    private Drawable fooddrawble;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -230,12 +233,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
 
 
-        iv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FoodChooseDialog();
-            }
-        });
 
         iv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -307,7 +304,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         //
     }
 
-    void FoodChooseDialog(){
+    void FoodChooseDialog(final Uri foodimg){
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
@@ -315,6 +312,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
                 HomeFragment.this.getActivity());
+
+        try{
+            InputStream inputStream = getActivity().getContentResolver().openInputStream(foodimg);
+            fooddrawble = Drawable.createFromStream(inputStream, foodimg.toString());
+        }catch (FileNotFoundException e){
+            fooddrawble = getResources().getDrawable(R.drawable.ic_launcher_icon);
+        }
+        //alertBuilder.setIcon(fooddrawble);
         alertBuilder.setIcon(R.drawable.ic_launcher_icon);
         alertBuilder.setTitle(" [ 음식을 선택해 주세요 ]");
         final ArrayAdapter<String> layer1adapter = new ArrayAdapter<String>(
@@ -357,6 +362,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 });
 
         // Adapter 셋팅
+        final Drawable finalFooddrawble = fooddrawble;
         alertBuilder.setAdapter(layer1adapter,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -372,7 +378,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     final FoodCalroie record = dataSnapshot.getValue(FoodCalroie.class);
                                     final int firstweight  = record.getfWeight();
 
-                                    WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),record.getfName(),record.getfWeight());
+                                    WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),record.getfName(),record.getfWeight(),foodimg);
                                     weightDialog.setDialogListener(new WeightDialogListener() {
                                         @Override
                                         public void onPositiveClicked(int Weight) {
@@ -381,13 +387,16 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                             FoodCalroie newrecord = new FoodCalroie(record.getfName(),(int)((double)record.getfCal()*(weightpersent[0])),
                                                     Math.round(record.getfCarbs()*weightpersent[0] * 100d)/100d,Math.round(record.getfFat()*weightpersent[0] * 100d)/100d,
                                                     Math.round(record.getfProtiens()*weightpersent[0]*100d)/100d,Math.round(record.getfNa()*weightpersent[0]*100d)/100d,
-                                                    (int)((double)record.getfWeight()*weightpersent[0]));
+                                                    (int)((double)record.getfWeight()*weightpersent[0]),foodimg.toString());
                                             mItems.add(newrecord);
                                             adapter.notifyDataSetChanged();
 
                                             todaypCal+=(newrecord.getfCal());
                                             mchildpCalRef.setValue(todaypCal);
                                             FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
+
+
+
                                         }
                                     });
                                     weightDialog.show();
@@ -406,6 +415,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     if (dataSnapshot.exists()){
                                         final AlertDialog.Builder alertlayer3Builder = new AlertDialog.Builder(
                                                 HomeFragment.this.getActivity());
+                                        //alertBuilder.setIcon(fooddrawble);
                                         alertlayer3Builder.setIcon(R.drawable.ic_launcher_icon);
                                         alertlayer3Builder.setTitle(strName);
                                         final ArrayAdapter<String> layer3adapter = new ArrayAdapter<String>(
@@ -427,6 +437,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                             final AlertDialog.Builder alertlayer2Builder = new AlertDialog.Builder(
                                                                     HomeFragment.this.getActivity());
                                                             alertlayer2Builder.setIcon(R.drawable.ic_launcher_icon);
+                                                            //alertBuilder.setIcon(fooddrawble);
                                                             alertlayer2Builder.setTitle(strName);
                                                             final ArrayAdapter<String> layer2adapter = new ArrayAdapter<String>(
                                                                     HomeFragment.this.getActivity(),
@@ -448,7 +459,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                                             final FoodCalroie layer3data = dataSnapshot.getValue(FoodCalroie.class);
                                                                             final int firstweight  = layer3data.getfWeight();
 
-                                                                            WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),layer3data.getfName(),layer3data.getfWeight());
+                                                                            WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(),layer3data.getfName(),layer3data.getfWeight(),foodimg);
                                                                             weightDialog.setDialogListener(new WeightDialogListener() {
                                                                                 @Override
                                                                                 public void onPositiveClicked(int Weight) {
@@ -457,7 +468,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                                                     FoodCalroie newrecord = new FoodCalroie(layer3data.getfName(),(int)((double)layer3data.getfCal()*(weightpersent[0])),
                                                                                             Math.round(layer3data.getfCarbs()*weightpersent[0] * 100d)/100d,Math.round(layer3data.getfFat()*weightpersent[0] * 100d)/100d,
                                                                                             Math.round(layer3data.getfProtiens()*weightpersent[0]*100d)/100d,Math.round(layer3data.getfNa()*weightpersent[0]*100d)/100d,
-                                                                                            (int)((double)layer3data.getfWeight()*weightpersent[0]));
+                                                                                            (int)((double)layer3data.getfWeight()*weightpersent[0]),foodimg.toString());
                                                                                     mItems.add(newrecord);
                                                                                     adapter.notifyDataSetChanged();
 
@@ -503,8 +514,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 });
         alertBuilder.show();
     }
-
-
 
     @Override
     public void onStart() {
@@ -643,10 +652,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
 
                         }
                     });
-
-
-
-
                 }
 
             }
@@ -757,7 +762,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 String s=cursor.getString(column_index);
                 filepath = s;
                 cursor.close();
-                iv.setImageURI(data.getData());
+                //iv.setImageURI(data.getData());
+                FoodChooseDialog(data.getData());
+
             }
             else if(requestCode==REQUEST_BARCODE) {
                 long now = System.currentTimeMillis();
@@ -781,28 +788,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
 
     public FoodCalroie FoodCal(String data){
         FoodCalroie foodCalroie;
-        if(data.equals("8806002007298")){
-            foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0);
 
-        }
-        else if(data.equals("8801117784508")){
-            foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",859,19,9,1,0,0);
-        }
-        else if(data.equals("8801117784409")){
-            foodCalroie = new FoodCalroie("꼬북칩(콘스프맛)",408,50.5,24,2.6,560,80);
-        }
-        else if(data.equals("8801019606540")){
-            foodCalroie = new FoodCalroie("허니버터칩",350,30,24,4,0,0);
-        }
-        else if(data.equals("8801019606557")){
-            foodCalroie = new FoodCalroie("허니버터칩",700,60,48,8,0,0);
-        }
-        else if(data.equals("8801045522678")){
-            foodCalroie = new FoodCalroie("진짬뽕",505,77,16,13,1,0);
+        if(data.equals("8806002007298")){
+            foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0,"img");
         }
         else{
             foodCalroie = new FoodCalroie();
         }
+
         return foodCalroie;
     }
 

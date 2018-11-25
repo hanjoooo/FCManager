@@ -12,11 +12,12 @@ public class FoodCalroie {
     private double fProtiens = 0;
     private double fNa = 0;
     private int fWeight= 0;
+    private String imguri= " ";
 
     public FoodCalroie(){
 
     }
-    public FoodCalroie(String fname, int fcal, double fcarbs, double ffat,double fprotien,double fNa,int fWeight){
+    public FoodCalroie(String fname, int fcal, double fcarbs, double ffat,double fprotien,double fNa,int fWeight,String imguri){
         this.fName=fname;
         this.fCal=fcal;
         this.fCarbs=fcarbs;
@@ -24,6 +25,7 @@ public class FoodCalroie {
         this.fProtiens=fprotien;
         this.fNa=fNa;
         this.fWeight=fWeight;
+        this.imguri = imguri;
     }
 
     public String getfName() {
@@ -53,4 +55,9 @@ public class FoodCalroie {
     public int getfWeight() {
         return fWeight;
     }
+
+    public String getImguri() {
+        return imguri;
+    }
+
 }

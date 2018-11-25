@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#fff"
     android:orientation="vertical"
     >
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:gravity="start"
-        android:paddingTop="16dp"
-        android:paddingBottom="10dp"
-        android:paddingLeft="24dp"
-        android:text="food"
-        android:id="@+id/foodname"
-        android:textColor="#000"
-        android:textSize="20sp" />
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/foodimg"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="10dp"
+            app:srcCompat="@drawable/ic_launcher_icon" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="start"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingLeft="7dp"
+            android:text="food"
+            android:id="@+id/foodname"
+            android:textColor="#000"
+            android:textSize="20sp" />
+    </LinearLayout>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -85,4 +98,6 @@
             />
 </LinearLayout>
     </android.support.design.widget.TextInputLayout>
+
+
 </LinearLayout>
