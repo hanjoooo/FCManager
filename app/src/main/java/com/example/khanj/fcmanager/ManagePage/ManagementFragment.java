@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -22,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.khanj.fcmanager.Base.BaseFragment;
+import com.example.khanj.fcmanager.HomePage.FoodDataActivity;
 import com.example.khanj.fcmanager.Model.DietRecord;
 import com.example.khanj.fcmanager.Model.FoodCalroie;
 import com.example.khanj.fcmanager.R;
@@ -40,6 +42,7 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.squareup.otto.Subscribe;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -181,7 +184,14 @@ public class ManagementFragment extends BaseFragment  {
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity().getApplicationContext()));
 
 
-
+        adapter.setItemClick(new FoodListAdapter.ItemClick() {
+            @Override
+            public void onClick(View view, int position) {
+                Intent fooddataIntent = new Intent(getActivity(), FoodDataActivity.class);
+                fooddataIntent.putExtra("fooddata", foodItems.get(position));
+                startActivity(fooddataIntent);
+            }
+        });
         return v;
         //
     }

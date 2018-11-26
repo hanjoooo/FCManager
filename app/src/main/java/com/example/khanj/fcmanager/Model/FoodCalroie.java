@@ -1,10 +1,12 @@
 package com.example.khanj.fcmanager.Model;
 
+import java.io.Serializable;
+
 /**
  * Created by khanj on 2018-10-06.
  */
 
-public class FoodCalroie {
+public class FoodCalroie implements Serializable{
     private String fName = "음식이름";
     private int fCal=0;
     private double fCarbs=0;
