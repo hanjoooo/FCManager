@@ -303,8 +303,43 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         return v;
         //
     }
+    //찍은 음식개수 선택하는 다이얼로그
+    void chooseNumberoftimes(final Uri foodimg){
 
-    void FoodChooseDialog(final Uri foodimg){
+        final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
+                HomeFragment.this.getActivity());
+        alertBuilder.setTitle("음식의 갯수를 선택해주세요 \n(최대 5개 선택가능)");
+        final ArrayAdapter<String> layeradapter = new ArrayAdapter<String>(
+                HomeFragment.this.getActivity(),
+                android.R.layout.select_dialog_item);
+
+        layeradapter.clear();
+        for(int i=1;i<=5;i++){
+            layeradapter.add(i+" 개");
+        }
+        // 버튼 생성
+        alertBuilder.setNegativeButton("취소",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,
+                                        int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        // Adapter 셋팅
+        alertBuilder.setAdapter(layeradapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                FoodChooseDialog(foodimg,which+1,1);
+            }
+        });
+        alertBuilder.show();
+    }
+
+    void FoodChooseDialog(final Uri foodimg, final int itemnumbofitems, final int itemindex){
+        if(itemindex > itemnumbofitems ){
+            return;
+        }
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
@@ -321,7 +356,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         }
         //alertBuilder.setIcon(fooddrawble);
         alertBuilder.setIcon(R.drawable.ic_launcher_icon);
-        alertBuilder.setTitle(" [ 음식을 선택해 주세요 ]");
+        alertBuilder.setTitle("[ "+itemindex+"번째 음식을 선택해 주세요 ]");
         final ArrayAdapter<String> layer1adapter = new ArrayAdapter<String>(
                 HomeFragment.this.getActivity(),
                 android.R.layout.select_dialog_singlechoice);
@@ -394,9 +429,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                             todaypCal+=(newrecord.getfCal());
                                             mchildpCalRef.setValue(todaypCal);
                                             FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
-
-
-
+                                            FoodChooseDialog(foodimg,itemnumbofitems,itemindex+1);
                                         }
                                     });
                                     weightDialog.show();
@@ -475,6 +508,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                                                     todaypCal+=(newrecord.getfCal());
                                                                                     mchildpCalRef.setValue(todaypCal);
                                                                                     FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
+                                                                                    FoodChooseDialog(foodimg,itemnumbofitems,itemindex+1);
                                                                                 }
                                                                             });
                                                                             weightDialog.show();
@@ -763,8 +797,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 filepath = s;
                 cursor.close();
                 //iv.setImageURI(data.getData());
-                FoodChooseDialog(data.getData());
-
+                chooseNumberoftimes(data.getData());
             }
             else if(requestCode==REQUEST_BARCODE) {
                 long now = System.currentTimeMillis();
