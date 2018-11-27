@@ -344,6 +344,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     public void onStateChanged(int id, TransferState state) {
                                         if(state==TransferState.COMPLETED){
                                             try {
+                                                progressOFF();
                                                 getJson();
                                                 foodRekogMapping(foodimg);
                                             } catch (JSONException e) {
@@ -436,7 +437,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     }
     //매칭된 음식이 있는 확인
     void isMappingFoodExist(Uri foodimg){
-        progressOFF();
         if(mappingDataExist==0){
             final AlertDialog.Builder noMappingDataDialog = new AlertDialog.Builder(HomeFragment.this.getActivity());
             noMappingDataDialog.setTitle("음식 인식 실패");

@@ -3,12 +3,17 @@ package com.example.khanj.fcmanager.MyPage;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +33,7 @@ import com.bumptech.glide.signature.StringSignature;
 import com.example.khanj.fcmanager.Base.BaseFragment;
 import com.example.khanj.fcmanager.LoginActivity;
 import com.example.khanj.fcmanager.Model.DietRecord;
+import com.example.khanj.fcmanager.Model.FoodCalroie;
 import com.example.khanj.fcmanager.R;
 import com.example.khanj.fcmanager.event.ActivityResultEvent;
 import com.example.khanj.fcmanager.loading.LoadingFragment;
@@ -61,7 +67,15 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.otto.Subscribe;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
 import io.realm.Realm;
 
 
@@ -75,6 +89,7 @@ public class MyPageFragment extends LoadingFragment {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mConditionRef = mRootRef.child("users");
+    private DatabaseReference mFoodRef = mRootRef.child("food");
     private DatabaseReference mchildRef;
     private DatabaseReference childNameRef;
     private DatabaseReference childGenderRef;
@@ -83,6 +98,7 @@ public class MyPageFragment extends LoadingFragment {
     private DatabaseReference childPWeightRef;
     private DatabaseReference childMWeightRef;
     private DatabaseReference IntakeRef;
+    private DatabaseReference childFoodRef;
 
 
     private FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -109,6 +125,8 @@ public class MyPageFragment extends LoadingFragment {
     private Double rPweight=0.0;
     private Double rMweight=0.0;
     private int rCalorie = 0;
+
+    private Bitmap bitmap;
 
     static final String[] LIST_MENU = {"내 정보 수정","프로필 사진 수정","암호 변경","로그아웃","계정 삭제"};
     static final String[] LIST2_MENU = {"일지 기록하기","일지 기록보기","체중 변화보기","영양 정보보기","일일필요열랑 계산"};
@@ -183,9 +201,6 @@ public class MyPageFragment extends LoadingFragment {
            }
        });
 
-
-
-
         return v;
         //
     }
@@ -196,6 +211,7 @@ public class MyPageFragment extends LoadingFragment {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mchildRef = mConditionRef.child(currentUser.getUid());
         schildRef = storageRef.child(currentUser.getUid());
+        childFoodRef = mFoodRef.child(currentUser.getUid());
         childNameRef = mchildRef.child("name");
         childHeightRef = mchildRef.child("height");
         childAgeRef = mchildRef.child("age");
@@ -204,62 +220,25 @@ public class MyPageFragment extends LoadingFragment {
         childMWeightRef = mchildRef.child("Mweight");
         sprofileRef = schildRef.child("profileImg");
         IntakeRef = mchildRef.child("DietRecord");
-        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
+        long now = System.currentTimeMillis();
+        final Date date = new Date(now);
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+
+        childFoodRef.child(simpleDateFormat.format(date)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
-                    ArrayList<DietRecord> mItems = new ArrayList<>();
+                if(dataSnapshot.exists()){
+                    double carbs = 0.0;
+                    double fat = 0.0;
+                    double na = 0.0;
+                    double protein =0.0;
                     for(DataSnapshot data:dataSnapshot.getChildren()){
-                        DietRecord record = data.getValue(DietRecord.class);
-                        mItems.add(record);
+                        carbs+=data.getValue(FoodCalroie.class).getfCarbs();
+                        fat+=data.getValue(FoodCalroie.class).getfFat();
+                        na+=data.getValue(FoodCalroie.class).getfNa();
+                        protein+=data.getValue(FoodCalroie.class).getfProtiens();
                     }
-/*
-                    List<Entry>entries = new ArrayList<>();
-                    entries.add(new Entry(0,mItems.get(0).getpCal()));
-                    entries.add(new Entry(2,mItems.get(1).getpCal()));
-                    entries.add(new Entry(4,mItems.get(2).getpCal()));
-                    entries.add(new Entry(6, mItems.get(3).getpCal()));
-                    entries.add(new Entry(8, mItems.get(4).getpCal()));
-
-
-                    LineDataSet lineDataSet = new LineDataSet(entries, "일일섭취칼로리");
-                    lineDataSet.setLineWidth(2);
-                    lineDataSet.setCircleRadius(6);
-                    lineDataSet.setCircleColor(Color.parseColor("#FFA1B4DC"));
-                    lineDataSet.setCircleColorHole(Color.BLUE);
-                    lineDataSet.setColor(Color.parseColor("#FFA1B4DC"));
-                    lineDataSet.setDrawCircleHole(true);
-                    lineDataSet.setDrawCircles(true);
-                    lineDataSet.setDrawHorizontalHighlightIndicator(false);
-                    lineDataSet.setDrawHighlightIndicators(false);
-                    lineDataSet.setDrawValues(false);
-                    lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-
-                    LineData lineData = new LineData(lineDataSet);
-                    lineChart.setData(lineData);
-
-                    XAxis xAxis = lineChart.getXAxis();
-                    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-                    xAxis.setTextColor(Color.BLACK);
-                    xAxis.enableGridDashedLine(8, 24, 0);
-
-                    YAxis yLAxis = lineChart.getAxisLeft();
-                    yLAxis.setTextColor(Color.BLACK);
-
-                    YAxis yRAxis = lineChart.getAxisRight();
-                    yRAxis.setDrawLabels(false);
-                    yRAxis.setDrawAxisLine(false);
-                    yRAxis.setDrawGridLines(false);
-
-                    Description description = new Description();
-                    description.setText("");
-
-                    lineChart.setDoubleTapToZoomEnabled(false);
-                    lineChart.setDrawGridBackground(false);
-                    lineChart.setDescription(description);
-                    lineChart.animateY(2000, Easing.EasingOption.EaseInCubic);
-                    lineChart.invalidate();
-*/
 
                     pieChart.setUsePercentValues(true);
                     pieChart.getDescription().setEnabled(false);
@@ -273,11 +252,10 @@ public class MyPageFragment extends LoadingFragment {
 
                     ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
 
-                    yValues.add(new PieEntry(2,"단백질"));
-                    yValues.add(new PieEntry(3,"탄수화물"));
-                    yValues.add(new PieEntry(1,"지방"));
-                    yValues.add(new PieEntry(1,"나트륨"));
-                    yValues.add(new PieEntry(1,"기타"));
+                    yValues.add(new PieEntry((int)(protein*10000),"단백질"));
+                    yValues.add(new PieEntry((int)(carbs*10000),"탄수화물"));
+                    yValues.add(new PieEntry((int)(fat*10000),"지방"));
+                    yValues.add(new PieEntry((int)(na*10),"나트륨"));
                     Description descriptions = new Description();
                     descriptions.setText(""); //라벨
                     descriptions.setTextSize(15);
@@ -295,10 +273,24 @@ public class MyPageFragment extends LoadingFragment {
                     data.setValueTextColor(Color.YELLOW);;
 
                     pieChart.setData(data);
-
-
                 }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        IntakeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    ArrayList<DietRecord> mItems = new ArrayList<>();
+                    for(DataSnapshot data:dataSnapshot.getChildren()){
+                        DietRecord record = data.getValue(DietRecord.class);
+                        mItems.add(record);
+                    }
+                }
 
             }
 
@@ -308,19 +300,78 @@ public class MyPageFragment extends LoadingFragment {
             }
         });
 
-        try{
-            Glide.with(MyPageFragment.this.getActivity()).using(new FirebaseImageLoader())
-                    .load(sprofileRef).signature(new StringSignature(String.valueOf(System.currentTimeMillis()))).into(profileImg);
-        }catch (Exception e) {
-            System.out.println(e);
-        }
+        /*
+        sprofileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(final Uri uri) {
+                if(uri.getPath()==null){
+                    profileImg.setImageResource(R.drawable.profile);
+                }else{
+                    profileImg.setImageURI(uri);
+                    Thread mTread = new Thread(){
+                        @Override
+                        public void run() {
+                            try {
+                                URL url = new URL(uri.toString());
+                                HttpURLConnection conn =(HttpURLConnection)url.openConnection();
+                                conn.setDoInput(true);
+                                conn.connect();
+                                InputStream is = conn.getInputStream();
+                                bitmap = BitmapFactory.decodeStream(is);
+                            }catch (MalformedURLException e){
+                                e.printStackTrace();
+                            }catch (IOException e){
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    mTread.start();
 
+                    try {
+                        mTread.join();
+                        profileImg.setImageBitmap(bitmap);
+
+                    }catch (InterruptedException e ){
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                profileImg.setImageResource(R.drawable.profile);
+            }
+        })
+        */;
+
+        sprofileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                if(uri.getPath().equals(null)){
+                    profileImg.setImageResource(R.drawable.ic_launcher_icon);
+                }else{
+                    try{
+                        Glide.with(MyPageFragment.this.getActivity()).using(new FirebaseImageLoader())
+                                .load(sprofileRef).signature(new StringSignature(String.valueOf(System.currentTimeMillis()))).into(profileImg);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                profileImg.setImageResource(R.drawable.ic_launcher_icon);
+
+            }
+        });
 
         childNameRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String name = dataSnapshot.getValue(String.class);
-                txName.setText(name+"님");
+                txName.setText(name+" 님");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -404,7 +455,6 @@ public class MyPageFragment extends LoadingFragment {
     }
 
     public static void setListViewHeightBasedOnChildren(ListView listView) {
-
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null) {
             // pre-condition
