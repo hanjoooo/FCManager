@@ -233,7 +233,7 @@
                         android:scrollbarAlwaysDrawVerticalTrack="true"
                         android:paddingLeft="16dp"
                         android:paddingRight="16dp"
-                        android:paddingBottom="15dp"
+                        android:paddingBottom="20dp"
                         android:layout_marginTop="5dp"/>
 
                 </LinearLayout>

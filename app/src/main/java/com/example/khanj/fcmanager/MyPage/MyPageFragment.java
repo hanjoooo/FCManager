@@ -466,10 +466,7 @@ public class MyPageFragment extends LoadingFragment {
 
             }
         }
-
     }
-
-
     @Subscribe
     public void onActivityResult(ActivityResultEvent activityResultEvent) {
         onActivityResult(activityResultEvent.getRequestCode(), activityResultEvent.getResultCode(), activityResultEvent.getData());

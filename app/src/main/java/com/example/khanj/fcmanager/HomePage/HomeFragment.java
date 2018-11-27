@@ -106,6 +106,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private DatabaseReference mFoodexistRef = mRootRef.child("foodexist");
     private DatabaseReference mFoodlistRef = mRootRef.child("foodlist");
     private DatabaseReference mFoodlist3Ref = mRootRef.child("foodlist3");
+    private DatabaseReference mFoodBarcodeRef = mRootRef.child("barcode");
     private DatabaseReference mchildRef;
     private DatabaseReference IntakeRef;
     private DatabaseReference childPWeightRef;
@@ -158,6 +159,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private int excal=0;
     private int exKcal=0;
 
+    private String userId;
     private int rAge=0;
     private Double rHeight=0.0;
     private Double pWeight=0.0;
@@ -313,7 +315,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
             final File file = new File(filepath);
             observer= transferUtility.upload(
                     "image-recog-lamb", /* 업로드 할 버킷 이름 */
-                    "picture", /* 버킷에 저장할 파일의 이름 */
+                    userId, /* 버킷에 저장할 파일의 이름 */
                     file/* 버킷에 저장할 파일 */
             );
             observer.setTransferListener(new TransferListener() {
@@ -326,9 +328,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         File downfile = new File(dirPath);
                         if(!downfile.exists())
                             downfile.mkdirs();
-                        savefile = new File(dirPath+"LOG_"+"picturejson"+".json");
+                        savefile = new File(dirPath+"LOG_"+userId+".json");
                         try {
-                            BufferedWriter bfw = new BufferedWriter(new FileWriter(dirPath+"LOG_"+"picturejson"+".json"));
+                            BufferedWriter bfw = new BufferedWriter(new FileWriter(dirPath+"LOG_"+userId+".json"));
                         }catch (IOException e){
 
                         }
@@ -336,16 +338,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         mHandler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                TransferObserver DownObserver =transferUtility.download("image-recog-lamb","picturejson", savefile);
+                                TransferObserver DownObserver =transferUtility.download("image-recog-lamb",userId+"json", savefile);
                                 DownObserver.setTransferListener(new TransferListener() {
                                     @Override
                                     public void onStateChanged(int id, TransferState state) {
                                         if(state==TransferState.COMPLETED){
                                             try {
-                                                progressOFF();
                                                 getJson();
-                                                foodRekogMapping();
-                                                chooseNumberoftimes(foodimg);
+                                                foodRekogMapping(foodimg);
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
@@ -360,7 +360,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     }
                                 });
                             }
-                        },2000);
+                        },2200);
                     }
                 }
 
@@ -394,7 +394,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         //JSONArray jArray = jObject.getJSONArray("Labels");
         JSONArray jarray = jObject.getJSONArray("Labels");
         //json array 에서 객체 추출
-        Log.d("sex",jObject.toString());
         foodRekogData.clear();
         for(int i=0; i <jarray.length() ; i++) {
             JSONObject jsonLabel = jarray.getJSONObject(i);  // JSONObject 추출
@@ -404,13 +403,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         }
     }
 
-    void foodRekogMapping(){
+    void foodRekogMapping(final Uri foodimg){
         layer1adapter = new ArrayAdapter<String>(
                 HomeFragment.this.getActivity(),
                 android.R.layout.select_dialog_singlechoice);
         layer1adapter.clear();
         foodCandinate.clear();
         foodlayermap.clear();
+        mappingDataExist=0;
         for(int i=0;i<foodRekogData.size();i++) {
             final int finalI = i;
             mFoodexistRef.child(foodRekogData.get(i)).addValueEventListener(new ValueEventListener() {
@@ -422,6 +422,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         layer1adapter.notifyDataSetChanged();
                         mappingDataExist =1;
                     }
+                    if(finalI==foodRekogData.size()-1){
+                        isMappingFoodExist(foodimg);
+                    }
                 }
 
                 @Override
@@ -430,6 +433,28 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 }
             });
         }
+    }
+    //매칭된 음식이 있는 확인
+    void isMappingFoodExist(Uri foodimg){
+        progressOFF();
+        if(mappingDataExist==0){
+            final AlertDialog.Builder noMappingDataDialog = new AlertDialog.Builder(HomeFragment.this.getActivity());
+            noMappingDataDialog.setTitle("음식 인식 실패");
+            noMappingDataDialog.setIcon(R.drawable.ic_launcher_icon);
+            noMappingDataDialog.setMessage("죄송합니다..\n해당 음식에 대한 정보가 없습니다..");
+            noMappingDataDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            noMappingDataDialog.show();
+            return;
+        }
+        else if(mappingDataExist == 1){
+            chooseNumberoftimes(foodimg);
+        }
+
     }
     //찍은 음식개수 선택하는 다이얼로그
     void chooseNumberoftimes(final Uri foodimg){
@@ -463,20 +488,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         alertBuilder.show();
     }
     void FoodChooseDialog(final Uri foodimg, final int itemnumbofitems, final int itemindex){
-
-        if(mappingDataExist==0){
-            final AlertDialog.Builder noMappingDataDialog = new AlertDialog.Builder(HomeFragment.this.getActivity());
-            noMappingDataDialog.setTitle("음식 인식 실패");
-            noMappingDataDialog.setMessage("해당 음식을 인식하지 못하였습니다..\n다시한번 시도해주십시오.");
-            noMappingDataDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            noMappingDataDialog.show();
-            return;
-        }
         if(itemindex > itemnumbofitems ){
             return;
         }
@@ -609,7 +620,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                         });
                                                         weightDialog.show();
                                                     }
-
                                                     @Override
                                                     public void onCancelled(DatabaseError databaseError) {
 
@@ -712,7 +722,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                             alertlayer2Builder.show();
                                                         }
                                                     }
-
                                                     @Override
                                                     public void onCancelled(DatabaseError databaseError) {
 
@@ -720,11 +729,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                 });
                                             }
                                         });
-
                                         alertlayer3Builder.show();
                                     }
                                 }
-
                                 @Override
                                 public void onCancelled(DatabaseError databaseError) {
 
@@ -737,10 +744,56 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         alertBuilder.show();
     }
 
+    public void FoodBarcode(final String data){
+        long now = System.currentTimeMillis();
+        final Date date = new Date(now);
+        // 출력될 포맷 설정
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
+        final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
+        mFoodBarcodeRef.child(data).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    final FoodCalroie foodCalroie = dataSnapshot.getValue(FoodCalroie.class);
+                    final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
+                            HomeFragment.this.getActivity());
+
+                    alertBuilder.setTitle("바코드 인식 결과\n  :  "+foodCalroie.getfName());
+                    alertBuilder.setMessage("\n오늘 섭취 음식에 추가하시겠습니까?");
+
+                    // 버튼 생성
+                    alertBuilder.setNegativeButton("아니요",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertBuilder.setPositiveButton("네", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            todaypCal+=foodCalroie.getfCal();
+                            mchildpCalRef.setValue(todaypCal);
+                            FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(foodCalroie);
+                            dialog.dismiss();
+                        }
+                    });
+                    alertBuilder.show();
+                }
+                else{
+                    Toast.makeText(getActivity(), "죄송합니다..등록되지 않은 제품입니다.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
     @Override
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
+        userId = currentUser.getUid();
         mchildRef = mConditionRef.child(currentUser.getUid());
         FoodRecordRef =mFoodRef.child(currentUser.getUid());
         IntakeRef = mchildRef.child("DietRecord");
@@ -959,7 +1012,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 cursor.close();
                 foodRekoginition(Uri.parse(path));
             }
-
             else if(requestCode==REQUEST_PHOTO_ALBUM){
                 //앨범에서 호출한경우 data는 이전인텐트(사진갤러리)에서 선택한 영역을 가져오게된다.
                 String[] projection = { MediaStore.Images.Media.DATA };
@@ -970,40 +1022,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 filepath = s;
                 cursor.close();
                 foodRekoginition(data.getData());
-
             }
             else if(requestCode==REQUEST_BARCODE) {
-                long now = System.currentTimeMillis();
-                final Date date = new Date(now);
-                // 출력될 포맷 설정
-                final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy년 MM월 dd일");
-                final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH시 mm분 ss초");
                 String barcode = data.getExtras().getString("data");
-                FoodCalroie foodCalroie= FoodCal(barcode);
-                if(foodCalroie.getfName().equals("음식이름")){
-                    Toast.makeText(getActivity(), "죄송합니다..등록되지 않은 제품입니다.", Toast.LENGTH_SHORT).show();
-                }else{
-                    todaypCal+=foodCalroie.getfCal();
-                    mchildpCalRef.setValue(todaypCal);
-                    FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(foodCalroie);
-                }
+                FoodBarcode(barcode);
             }
-
         }
     }
-
     public void startProgresss(){
         progressON(getActivity(),"음식 인식중...");
     }
-    public FoodCalroie FoodCal(String data){
-        FoodCalroie foodCalroie;
-        if(data.equals("8806002007298")){
-            foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0,"img");
-        }
-        else{
-            foodCalroie = new FoodCalroie();
-        }
-        return foodCalroie;
-    }
-
 }
