@@ -13,6 +13,8 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -40,7 +42,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -63,19 +67,27 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.spongycastle.asn1.dvcs.Data;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.net.CookieManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.realm.ObjectServerError;
 import io.realm.Realm;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -119,7 +131,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     //바코드 스캔시 돌려받을 번호
     static int REQUEST_BARCODE=3;
 
-    ImageView iv;
+    //ImageView iv;
     private TextView txmCal;
     private TextView txpCal;
     private TextView txexCal;
@@ -154,11 +166,14 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private int pCalorie = 0;
     private int mCalorie = 0;
 
-    ArrayList<String> a= new ArrayList<>();
+    ArrayList<String>foodRekogData = new ArrayList<>();
     ArrayList<String> foodCandinate= new ArrayList<>();
     Map<String,Integer> foodlayermap = new HashMap<String, Integer>();
 
     private Drawable fooddrawble;
+    private TransferObserver observer;
+    private TransferUtility transferUtility;
+    File savefile;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -187,7 +202,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         txwGain = (TextView) v.findViewById(R.id.weightgain);
 
         //여기에 일단 기본적인 이미지파일 하나를 가져온다.
-        iv=(ImageView) v.findViewById(R.id.imgView);
+        //iv=(ImageView) v.findViewById(R.id.imgView);
 
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_close);
@@ -222,7 +237,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         );
 
         AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-        final TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
+        transferUtility = new TransferUtility(s3, getApplicationContext());
         s3.setRegion(Region.getRegion(Regions.AP_NORTHEAST_2));
         s3.setEndpoint("s3.ap-northeast-2.amazonaws.com");
 
@@ -237,27 +252,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 Intent fooddataIntent = new Intent(getActivity(), FoodDataActivity.class);
                 fooddataIntent.putExtra("fooddata", mItems.get(position));
                 startActivity(fooddataIntent);
-            }
-        });
-
-
-
-        iv.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if(filepath==null){
-
-                }else{
-                    final File file = new File(filepath);
-                    TransferObserver observer = transferUtility.upload(
-                            "s3fcmanager", /* 업로드 할 버킷 이름 */
-                            "picture", /* 버킷에 저장할 파일의 이름 */
-                            file/* 버킷에 저장할 파일 */
-                    );
-                    Toast.makeText(getActivity(), "사진을 등록하였습니다.", Toast.LENGTH_SHORT).show();
-                    // Amazon Cognito 인증 공급자를 초기화합니다
-                }
-                return false;
             }
         });
 
@@ -293,9 +287,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                     ActivityCompat.requestPermissions( this.getActivity(), REQUIRED_PERMISSIONS,
                             PERMISSIONS_REQUEST_CODE);
                 }
-
             }
-
         } else {
 
             final Snackbar snackbar = Snackbar.make(v, "디바이스가 카메라를 지원하지 않습니다.",
@@ -311,9 +303,76 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         return v;
         //
     }
+    void foodRekoginition(final Uri foodimg){
+        startProgresss();
+
+        if(filepath==null){
+        }else{
+            final File file = new File(filepath);
+            observer= transferUtility.upload(
+                    "image-recog-lamb", /* 업로드 할 버킷 이름 */
+                    "picture", /* 버킷에 저장할 파일의 이름 */
+                    file/* 버킷에 저장할 파일 */
+            );
+            observer.setTransferListener(new TransferListener() {
+                @Override
+                public void onStateChanged(int id, TransferState state) {
+                    if(state == TransferState.COMPLETED){
+                        // Amazon Cognito 인증 공급자를 초기화합니다
+
+                        String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/FoodJSON/";
+                        File downfile = new File(dirPath);
+                        if(!downfile.exists())
+                            downfile.mkdirs();
+                        savefile = new File(dirPath+"LOG_"+"picturejson"+".json");
+                        try {
+                            BufferedWriter bfw = new BufferedWriter(new FileWriter(dirPath+"LOG_"+"picturejson"+".json"));
+                        }catch (IOException e){
+
+                        }
+                        Handler mHandler = new Handler();
+                        mHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                TransferObserver DownObserver =transferUtility.download("image-recog-lamb","picturejson", savefile);
+                                DownObserver.setTransferListener(new TransferListener() {
+                                    @Override
+                                    public void onStateChanged(int id, TransferState state) {
+                                        if(state==TransferState.COMPLETED){
+                                            try {
+                                                progressOFF();
+                                                getJson(foodimg);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+                                    }
+                                    @Override
+                                    public void onError(int id, Exception ex) {
+                                    }
+                                });
+                            }
+                        },1500);
+                    }
+                }
+
+                @Override
+                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                }
+                @Override
+                public void onError(int id, Exception ex) {
+
+                }
+            });
+
+        }
+    }
     //찍은 음식개수 선택하는 다이얼로그
     void chooseNumberoftimes(final Uri foodimg){
-
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(
                 HomeFragment.this.getActivity());
         alertBuilder.setTitle("음식의 갯수를 선택해주세요 \n(최대 5개 선택가능)");
@@ -343,7 +402,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         });
         alertBuilder.show();
     }
-
     void FoodChooseDialog(final Uri foodimg, final int itemnumbofitems, final int itemindex){
         if(itemindex > itemnumbofitems ){
             return;
@@ -368,22 +426,18 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         final ArrayAdapter<String> layer1adapter = new ArrayAdapter<String>(
                 HomeFragment.this.getActivity(),
                 android.R.layout.select_dialog_singlechoice);
-        a.clear();
+        layer1adapter.clear();
         foodCandinate.clear();
         foodlayermap.clear();
-        a.add("Apple");
-        a.add("grape");
-        a.add("Banana");
-        a.add("Cherry");
-        a.add("Burger");
-        for(int i=0;i<a.size();i++) {
+        for(int i=0;i<foodRekogData.size();i++) {
             final int finalI = i;
-            mFoodexistRef.child(a.get(i)).addValueEventListener(new ValueEventListener() {
+            mFoodexistRef.child(foodRekogData.get(i)).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
-                        layer1adapter.add(a.get(finalI));
-                        foodlayermap.put(a.get(finalI), Integer.parseInt(dataSnapshot.getValue().toString()));
+                        layer1adapter.add(foodRekogData.get(finalI));
+                        foodlayermap.put(foodRekogData.get(finalI), Integer.parseInt(dataSnapshot.getValue().toString()));
+                        layer1adapter.notifyDataSetChanged();
                     }
                 }
 
@@ -486,6 +540,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                                             for (DataSnapshot data : dataSnapshot.getChildren()) {
                                                                 record = data.getValue(FoodCalroie.class);
                                                                 layer2adapter.add(record.getfName());
+                                                                layer2adapter.notifyDataSetChanged();
                                                             }
 
                                                             alertlayer2Builder.setAdapter(layer2adapter, new DialogInterface.OnClickListener() {
@@ -556,7 +611,35 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 });
         alertBuilder.show();
     }
+    public void getJson(final Uri foodimg) throws JSONException {
+        String json = null;
+        try {
+            //InputStream is = getResources().getAssets().open("data.json");
+            FileInputStream is = new FileInputStream(savefile);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
 
+        } catch (IOException ex) {
+            ex.printStackTrace();
+
+        }
+        JSONObject jObject = new JSONObject(json);
+        //JSONArray jArray = jObject.getJSONArray("Labels");
+        JSONArray jarray = jObject.getJSONArray("Labels");
+        //json array 에서 객체 추출
+        Log.d("sex",jObject.toString());
+        foodRekogData.clear();
+        for(int i=0; i <jarray.length() ; i++) {
+            JSONObject jsonLabel = jarray.getJSONObject(i);  // JSONObject 추출
+            String confidence = jsonLabel.getString("Confidence"); //JSONobject 에서 데이터 추출
+            String name = jsonLabel.getString("Name");
+            foodRekogData.add(name);
+        }
+        chooseNumberoftimes(foodimg);
+    }
     @Override
     public void onStart() {
         super.onStart();
@@ -608,21 +691,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                     txwGain.setText(weightGain+" kg");
                 }
                 else{
-
-                    childStepRef.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            int val = Integer.parseInt(dataSnapshot.getValue().toString());
-                            Double stepCal = val*0.03+exKcal;
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
                     childAgeRef.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -710,7 +778,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                     txstep.setText("걸음 수  :  "+dataSnapshot.getValue());
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -792,7 +859,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 String s=cursor.getString(column_index);
                 filepath = s;
                 cursor.close();
-                iv.setImageURI(Uri.parse(path));
+                //iv.setImageURI(Uri.parse(path));
             }
 
             else if(requestCode==REQUEST_PHOTO_ALBUM){
@@ -805,7 +872,8 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 filepath = s;
                 cursor.close();
                 //iv.setImageURI(data.getData());
-                chooseNumberoftimes(data.getData());
+                foodRekoginition(data.getData());
+
             }
             else if(requestCode==REQUEST_BARCODE) {
                 long now = System.currentTimeMillis();
@@ -827,16 +895,17 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         }
     }
 
+    public void startProgresss(){
+        progressON(getActivity(),"음식 인식중...");
+    }
     public FoodCalroie FoodCal(String data){
         FoodCalroie foodCalroie;
-
         if(data.equals("8806002007298")){
             foodCalroie = new FoodCalroie("비타500",70,17,0,1,1,0,"img");
         }
         else{
             foodCalroie = new FoodCalroie();
         }
-
         return foodCalroie;
     }
 

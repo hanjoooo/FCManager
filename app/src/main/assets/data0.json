@@ -1,0 +1,12 @@
+{
+  "Labels": [{
+    "Confidence": 99.45133972167969,
+    "Name": "Cutlery"
+  }, {
+    "Confidence": 99.45133972167969,
+    "Name": "Fork"
+  }, {
+    "Confidence": 94.57328033447266,
+  "Name": "Meal"
+  }]
+}
