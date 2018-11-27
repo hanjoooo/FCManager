@@ -230,15 +230,16 @@
                         android:id="@+id/recyclerView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
                         android:scrollbarAlwaysDrawVerticalTrack="true"
                         android:paddingLeft="16dp"
                         android:paddingRight="16dp"
-                        android:paddingBottom="10dp"
+                        android:paddingBottom="15dp"
                         android:layout_marginTop="5dp"/>
 
                 </LinearLayout>
+
             </ScrollView>
+
         </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab3"
@@ -358,4 +359,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/blank"
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:background="@color/colorBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </android.support.constraint.ConstraintLayout>
