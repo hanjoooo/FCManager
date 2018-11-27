@@ -166,14 +166,16 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
     private int pCalorie = 0;
     private int mCalorie = 0;
 
-    ArrayList<String>foodRekogData = new ArrayList<>();
-    ArrayList<String> foodCandinate= new ArrayList<>();
-    Map<String,Integer> foodlayermap = new HashMap<String, Integer>();
+    private ArrayList<String>foodRekogData = new ArrayList<>();
+    private ArrayList<String> foodCandinate= new ArrayList<>();
+    private Map<String,Integer> foodlayermap = new HashMap<String, Integer>();
+    private ArrayAdapter<String> layer1adapter;
+    private int mappingDataExist=0;
 
     private Drawable fooddrawble;
     private TransferObserver observer;
     private TransferUtility transferUtility;
-    File savefile;
+    private File savefile;
 
     ServiceConnection soonn = new ServiceConnection() {
         @Override
@@ -341,7 +343,9 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                         if(state==TransferState.COMPLETED){
                                             try {
                                                 progressOFF();
-                                                getJson(foodimg);
+                                                getJson();
+                                                foodRekogMapping();
+                                                chooseNumberoftimes(foodimg);
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
@@ -356,7 +360,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     }
                                 });
                             }
-                        },1500);
+                        },2000);
                     }
                 }
 
@@ -369,6 +373,62 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 }
             });
 
+        }
+    }
+    public void getJson() throws JSONException {
+        String json = null;
+        try {
+            //InputStream is = getResources().getAssets().open("data.json");
+            FileInputStream is = new FileInputStream(savefile);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+
+        }
+        JSONObject jObject = new JSONObject(json);
+        //JSONArray jArray = jObject.getJSONArray("Labels");
+        JSONArray jarray = jObject.getJSONArray("Labels");
+        //json array 에서 객체 추출
+        Log.d("sex",jObject.toString());
+        foodRekogData.clear();
+        for(int i=0; i <jarray.length() ; i++) {
+            JSONObject jsonLabel = jarray.getJSONObject(i);  // JSONObject 추출
+            String confidence = jsonLabel.getString("Confidence"); //JSONobject 에서 데이터 추출
+            String name = jsonLabel.getString("Name");
+            foodRekogData.add(name);
+        }
+    }
+
+    void foodRekogMapping(){
+        layer1adapter = new ArrayAdapter<String>(
+                HomeFragment.this.getActivity(),
+                android.R.layout.select_dialog_singlechoice);
+        layer1adapter.clear();
+        foodCandinate.clear();
+        foodlayermap.clear();
+        for(int i=0;i<foodRekogData.size();i++) {
+            final int finalI = i;
+            mFoodexistRef.child(foodRekogData.get(i)).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        layer1adapter.add(foodRekogData.get(finalI));
+                        foodlayermap.put(foodRekogData.get(finalI), Integer.parseInt(dataSnapshot.getValue().toString()));
+                        layer1adapter.notifyDataSetChanged();
+                        mappingDataExist =1;
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
     }
     //찍은 음식개수 선택하는 다이얼로그
@@ -403,9 +463,24 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         alertBuilder.show();
     }
     void FoodChooseDialog(final Uri foodimg, final int itemnumbofitems, final int itemindex){
+
+        if(mappingDataExist==0){
+            final AlertDialog.Builder noMappingDataDialog = new AlertDialog.Builder(HomeFragment.this.getActivity());
+            noMappingDataDialog.setTitle("음식 인식 실패");
+            noMappingDataDialog.setMessage("해당 음식을 인식하지 못하였습니다..\n다시한번 시도해주십시오.");
+            noMappingDataDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            noMappingDataDialog.show();
+            return;
+        }
         if(itemindex > itemnumbofitems ){
             return;
         }
+
         long now = System.currentTimeMillis();
         final Date date = new Date(now);
         // 출력될 포맷 설정
@@ -423,30 +498,8 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
         //alertBuilder.setIcon(fooddrawble);
         alertBuilder.setIcon(R.drawable.ic_launcher_icon);
         alertBuilder.setTitle("[ "+itemindex+"번째 음식을 선택해 주세요 ]");
-        final ArrayAdapter<String> layer1adapter = new ArrayAdapter<String>(
-                HomeFragment.this.getActivity(),
-                android.R.layout.select_dialog_singlechoice);
-        layer1adapter.clear();
-        foodCandinate.clear();
-        foodlayermap.clear();
-        for(int i=0;i<foodRekogData.size();i++) {
-            final int finalI = i;
-            mFoodexistRef.child(foodRekogData.get(i)).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        layer1adapter.add(foodRekogData.get(finalI));
-                        foodlayermap.put(foodRekogData.get(finalI), Integer.parseInt(dataSnapshot.getValue().toString()));
-                        layer1adapter.notifyDataSetChanged();
-                    }
-                }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
 
-                }
-            });
-        }
         final double[] weightpersent = {1};
 
         // 버튼 생성
@@ -496,6 +549,78 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                                     });
                                     weightDialog.show();
                                 }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                        //음식데이터가 layer2일 경우
+                        else if(foodlayermap.get(strName).equals(2)){
+                            mFoodlistRef.child(strName).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        FoodCalroie record;
+                                        final AlertDialog.Builder alertlayer2Builder = new AlertDialog.Builder(
+                                                HomeFragment.this.getActivity());
+                                        alertlayer2Builder.setIcon(R.drawable.ic_launcher_icon);
+                                        //alertBuilder.setIcon(fooddrawble);
+                                        alertlayer2Builder.setTitle(strName);
+                                        final ArrayAdapter<String> layer2adapter = new ArrayAdapter<String>(
+                                                HomeFragment.this.getActivity(),
+                                                android.R.layout.select_dialog_singlechoice);
+                                        for (DataSnapshot data : dataSnapshot.getChildren()) {
+                                            record = data.getValue(FoodCalroie.class);
+                                            layer2adapter.add(record.getfName());
+                                            layer2adapter.notifyDataSetChanged();
+                                        }
+
+                                        alertlayer2Builder.setAdapter(layer2adapter, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                //layer2선택시
+                                                final String foodName = layer2adapter.getItem(which);
+
+                                                mFoodlistRef.child(strName).child(foodName).addValueEventListener(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                                        final FoodCalroie layer3data = dataSnapshot.getValue(FoodCalroie.class);
+                                                        final int firstweight = layer3data.getfWeight();
+
+                                                        WeightDialog weightDialog = new WeightDialog(HomeFragment.this.getActivity(), layer3data.getfName(), layer3data.getfWeight(), foodimg);
+                                                        weightDialog.setDialogListener(new WeightDialogListener() {
+                                                            @Override
+                                                            public void onPositiveClicked(int Weight) {
+                                                                int lastweight = Weight;
+                                                                weightpersent[0] = (double) lastweight / (double) firstweight;
+                                                                FoodCalroie newrecord = new FoodCalroie(layer3data.getfName(), (int) ((double) layer3data.getfCal() * (weightpersent[0])),
+                                                                        Math.round(layer3data.getfCarbs() * weightpersent[0] * 100d) / 100d, Math.round(layer3data.getfFat() * weightpersent[0] * 100d) / 100d,
+                                                                        Math.round(layer3data.getfProtiens() * weightpersent[0] * 100d) / 100d, Math.round(layer3data.getfNa() * weightpersent[0] * 100d) / 100d,
+                                                                        (int) ((double) layer3data.getfWeight() * weightpersent[0]), foodimg.toString());
+                                                                mItems.add(newrecord);
+                                                                adapter.notifyDataSetChanged();
+
+                                                                todaypCal += (newrecord.getfCal());
+                                                                mchildpCalRef.setValue(todaypCal);
+                                                                FoodRecordRef.child(simpleDateFormat.format(date)).child(simpleDateFormat1.format(date)).setValue(newrecord);
+                                                                FoodChooseDialog(foodimg, itemnumbofitems, itemindex + 1);
+                                                            }
+                                                        });
+                                                        weightDialog.show();
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(DatabaseError databaseError) {
+
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        alertlayer2Builder.show();
+                                    }
+                                }
+
                                 @Override
                                 public void onCancelled(DatabaseError databaseError) {
 
@@ -611,35 +736,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 });
         alertBuilder.show();
     }
-    public void getJson(final Uri foodimg) throws JSONException {
-        String json = null;
-        try {
-            //InputStream is = getResources().getAssets().open("data.json");
-            FileInputStream is = new FileInputStream(savefile);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
-
-        }
-        JSONObject jObject = new JSONObject(json);
-        //JSONArray jArray = jObject.getJSONArray("Labels");
-        JSONArray jarray = jObject.getJSONArray("Labels");
-        //json array 에서 객체 추출
-        Log.d("sex",jObject.toString());
-        foodRekogData.clear();
-        for(int i=0; i <jarray.length() ; i++) {
-            JSONObject jsonLabel = jarray.getJSONObject(i);  // JSONObject 추출
-            String confidence = jsonLabel.getString("Confidence"); //JSONobject 에서 데이터 추출
-            String name = jsonLabel.getString("Name");
-            foodRekogData.add(name);
-        }
-        chooseNumberoftimes(foodimg);
-    }
     @Override
     public void onStart() {
         super.onStart();
@@ -667,6 +764,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                         mItems.add(record);
                     }
                     adapter.notifyDataSetChanged();
+                    recyclerView.scrollToPosition(adapter.getItemCount()-1);
                 }
             }
 
@@ -859,7 +957,7 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 String s=cursor.getString(column_index);
                 filepath = s;
                 cursor.close();
-                //iv.setImageURI(Uri.parse(path));
+                foodRekoginition(Uri.parse(path));
             }
 
             else if(requestCode==REQUEST_PHOTO_ALBUM){
@@ -871,7 +969,6 @@ public class HomeFragment extends LoadingFragment implements View.OnClickListene
                 String s=cursor.getString(column_index);
                 filepath = s;
                 cursor.close();
-                //iv.setImageURI(data.getData());
                 foodRekoginition(data.getData());
 
             }
