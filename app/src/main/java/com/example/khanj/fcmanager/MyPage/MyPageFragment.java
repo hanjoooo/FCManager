@@ -75,6 +75,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.Realm;
 
@@ -256,6 +257,8 @@ public class MyPageFragment extends LoadingFragment {
                     yValues.add(new PieEntry((int)(carbs*10000),"탄수화물"));
                     yValues.add(new PieEntry((int)(fat*10000),"지방"));
                     yValues.add(new PieEntry((int)(na*10),"나트륨"));
+
+
                     Description descriptions = new Description();
                     descriptions.setText(""); //라벨
                     descriptions.setTextSize(15);
@@ -266,7 +269,7 @@ public class MyPageFragment extends LoadingFragment {
                     PieDataSet dataSet = new PieDataSet(yValues,"");
                     dataSet.setSliceSpace(3f);
                     dataSet.setSelectionShift(5f);
-                    dataSet.setColors(ColorTemplate.JOYFUL_COLORS);
+                    dataSet.setColors(ColorTemplate.COLORFUL_COLORS);
 
                     PieData data = new PieData((dataSet));
                     data.setValueTextSize(10f);

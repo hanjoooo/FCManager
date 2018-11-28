@@ -17,7 +17,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_icon" />
+        app:srcCompat="@drawable/ic_launcher_icon"
+        android:scaleType="fitCenter"/>
 
     <TextView
         android:id="@+id/txfoodname"

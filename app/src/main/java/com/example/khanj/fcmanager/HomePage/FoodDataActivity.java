@@ -53,7 +53,9 @@ public class FoodDataActivity extends AppCompatActivity {
             ivFoodImg.setImageResource(R.drawable.ic_launcher_icon);
         }else{
             ivFoodImg.setImageURI(Uri.parse(foodData.getImguri()));
-
+            if(null==ivFoodImg.getDrawable()){
+                ivFoodImg.setImageResource(R.drawable.ic_launcher_icon);
+            }
         }
         txFoodName.setText(foodData.getfName().toString());
         txFoodCal.setText(foodData.getfCal()+" kcal");

@@ -49,4 +49,9 @@
     <color name="blochain_added">#FFDEAD </color>
 
     <color name="black_overlay">#66000000</color>
+
+    <color name="one">#06a2cb</color>
+    <color name="two">#ebb035</color>
+    <color name="three">#dd1e2f</color>
+    <color name="four">#218559</color>
 </resources>

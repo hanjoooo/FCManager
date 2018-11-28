@@ -2,6 +2,7 @@ package com.example.khanj.fcmanager.adapter;
 
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +61,9 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.ItemVi
             holder.imageView.setImageResource(R.drawable.ic_launcher_icon);
         }else{
             holder.imageView.setImageURI(Uri.parse(mItems.get(position).getImguri()));
-
+           if(null==holder.imageView.getDrawable()){
+               holder.imageView.setImageResource(R.drawable.ic_launcher_icon);
+           }
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
